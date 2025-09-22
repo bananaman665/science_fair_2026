@@ -1,0 +1,107 @@
+# Data Repository - Exclude Cloud-Synced Content
+# Science Fair 2025 - Apple Oxidation Detection
+# 
+# This .gitignore excludes all data files that are synced to Google Drive
+# and only keeps utility scripts, templates, and documentation
+
+# ==============================================================================
+# EXCLUDE ALL DATA DIRECTORIES (Cloud-synced content)
+# ==============================================================================
+
+# Raw image collections (synced to Google Drive)
+01_raw_images/round_*/
+01_raw_images/collection_*/
+01_raw_images/**/*.jpg
+01_raw_images/**/*.jpeg
+01_raw_images/**/*.png
+01_raw_images/**/*.tiff
+01_raw_images/**/*.bmp
+01_raw_images/**/*.raw
+
+# Processed datasets (synced to Google Drive)
+02_processed_images/training_set/
+02_processed_images/validation_set/
+02_processed_images/test_set/
+02_processed_images/**/*.jpg
+02_processed_images/**/*.jpeg
+02_processed_images/**/*.png
+02_processed_images/**/*.tiff
+02_processed_images/**/*.bmp
+
+# Data tracking files (synced to Google Drive)
+03_data_tracking/daily_logs/
+03_data_tracking/collection_sheets/
+03_data_tracking/**/*.csv
+03_data_tracking/**/*.xlsx
+03_data_tracking/**/*.json
+
+# Archive directory (synced to Google Drive)
+05_archive/**/*
+
+# ==============================================================================
+# TEMPORARY AND GENERATED FILES
+# ==============================================================================
+
+# Python cache from scripts
+04_scripts/__pycache__/
+04_scripts/*.pyc
+04_scripts/.pytest_cache/
+
+# Google Drive API tokens
+04_scripts/token.json
+04_scripts/credentials.json
+
+# Script logs and temporary files
+04_scripts/logs/
+04_scripts/temp/
+04_scripts/*.log
+04_scripts/*.tmp
+
+# Sync status files
+.sync_status
+.last_sync
+sync_errors.log
+04_scripts/sync_log.txt
+
+# Temporary sync files
+.tmp/
+.sync/
+
+# Virtual environment
+venv/
+env/
+.env
+
+# ==============================================================================
+# KEEP THESE ESSENTIAL FILES
+# ==============================================================================
+
+# Directory structure markers
+!01_raw_images/.gitkeep
+!01_raw_images/README.md
+!02_processed_images/.gitkeep
+!02_processed_images/README.md
+!03_data_tracking/.gitkeep
+!03_data_tracking/README.md
+!05_archive/.gitkeep
+
+# Sample and template files
+!01_raw_images/samples/
+!02_processed_images/samples/
+!03_data_tracking/templates/
+!03_data_tracking/examples/
+
+# All scripts and utilities
+!04_scripts/*.py
+!04_scripts/*.sh
+!04_scripts/README.md
+!04_scripts/requirements.txt
+
+# Documentation
+!**/*.md
+!**/README*
+!**/.gitkeep
+
+# Configuration templates
+!04_scripts/config.template.*
+!04_scripts/example.*

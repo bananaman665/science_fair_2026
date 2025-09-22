@@ -1,0 +1,53 @@
+# Science Fair 2025 - Global .gitignore
+# Project-wide patterns and secrets
+
+# ==============================================================================
+# GLOBAL SECRETS & CREDENTIALS
+# ==============================================================================
+
+# Google Drive API credentials (anywhere in project)
+**/credentials.json
+**/token.json
+**/client_secret*.json
+
+# API keys and secrets
+.env
+*.key
+*.pem
+secrets/
+config/secrets.json
+
+# ==============================================================================
+# DEVELOPMENT TOOLS (Global)
+# ==============================================================================
+
+# IDEs
+.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# ==============================================================================
+# KEEP THESE FILES (Override patterns from subdirectories)
+# ==============================================================================
+
+# Documentation should always be tracked
+!docs/**/*.md
+!docs/**/*.txt
+!**/README*
+!**/.gitkeep
