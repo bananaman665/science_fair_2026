@@ -1,0 +1,39 @@
+{
+  "model_name": "apple_oxidation_rf_20251004_175814",
+  "timestamp": "20251004_175814",
+  "algorithm": "Random Forest",
+  "n_estimators": 100,
+  "num_classes": 4,
+  "class_names": [
+    "Fresh",
+    "Light Oxidation",
+    "Medium Oxidation",
+    "Heavy Oxidation"
+  ],
+  "feature_names": [
+    "red_channel_mean",
+    "green_channel_mean",
+    "blue_channel_mean",
+    "red_channel_std",
+    "green_channel_std",
+    "blue_channel_std",
+    "brown_pixel_ratio",
+    "brightness_mean",
+    "contrast_measure",
+    "texture_entropy",
+    "edge_density",
+    "smooth_regions",
+    "spot_count",
+    "spot_size_avg",
+    "color_uniformity",
+    "surface_roughness",
+    "hue_variance",
+    "saturation_mean",
+    "lightness_std",
+    "color_gradient"
+  ],
+  "test_accuracy": 0.77,
+  "model_file": "apple_oxidation_model_20251004_175814.joblib",
+  "framework": "scikit-learn",
+  "compatible_with": "FastAPI backend"
+}

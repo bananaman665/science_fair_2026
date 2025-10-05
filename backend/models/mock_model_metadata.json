@@ -1,0 +1,17 @@
+{
+  "model_name": "apple_oxidation_efficientnet_demo",
+  "timestamp": "20251004_164921",
+  "architecture": "EfficientNet-B0",
+  "num_classes": 4,
+  "class_names": [
+    "Fresh",
+    "Light",
+    "Medium",
+    "Heavy"
+  ],
+  "final_accuracy": 0.92,
+  "training_epochs": 10,
+  "img_size": 224,
+  "parameters": 5290000,
+  "mobile_ready": true
+}

@@ -15,15 +15,25 @@ Learning Goals:
 5. Save and load trained models
 """
 
+import os
+# Set threading and memory environment variables before importing TensorFlow
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Reduce TensorFlow logging
+os.environ['OMP_NUM_THREADS'] = '1'       # Fix threading issues on macOS
+os.environ['TF_NUM_INTEROP_THREADS'] = '1'
+os.environ['TF_NUM_INTRAOP_THREADS'] = '1'
+
 import tensorflow as tf
 import tensorflow_datasets as tfds
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import classification_report, confusion_matrix
-import os
 from datetime import datetime
 import json
+
+# Configure TensorFlow for macOS stability
+tf.config.threading.set_inter_op_parallelism_threads(1)
+tf.config.threading.set_intra_op_parallelism_threads(1)
 
 # Set up GPU memory growth (prevents TensorFlow from allocating all GPU memory)
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -33,6 +43,9 @@ if gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
     except RuntimeError as e:
         print(f"GPU setup error: {e}")
+
+# Use CPU-only mode to avoid GPU threading issues on macOS
+tf.config.set_visible_devices([], 'GPU')
 
 class FlowerClassificationTrainer:
     """
@@ -44,7 +57,7 @@ class FlowerClassificationTrainer:
         self.data_dir = data_dir
         self.model_dir = model_dir
         self.img_size = 224  # EfficientNet-B0 input size
-        self.batch_size = 32
+        self.batch_size = 16  # Reduced for macOS stability
         self.num_classes = 5  # flowers dataset has 5 classes
         
         # Create directories
@@ -490,13 +503,13 @@ def main():
     print("\n" + "="*50)
     print("PHASE 1: Training classification head only")
     print("="*50)
-    history1 = trainer.train_phase_1(epochs=5)  # Start with fewer epochs for demo
+    history1 = trainer.train_phase_1(epochs=3)  # Reduced epochs for demo stability
     
     # Step 4: Train Phase 2 (fine-tuning)
     print("\n" + "="*50)
     print("PHASE 2: Fine-tuning top layers")
     print("="*50)
-    history2 = trainer.train_phase_2(epochs=5, fine_tune_layers=20)
+    history2 = trainer.train_phase_2(epochs=3, fine_tune_layers=10)  # Reduced for stability
     
     # Step 5: Evaluate model
     print("\n" + "="*50)
