@@ -33,7 +33,7 @@ def load_model():
     """Load the trained model and metadata"""
     global model, model_metadata
     
-    model_path = Path(__file__).parent / "apple_model_local_1808.h5"
+    model_path = Path(__file__).parent / "apple_model_local_1819.h5"
     metadata_path = Path(__file__).parent / "model_metadata.json"
     
     try:

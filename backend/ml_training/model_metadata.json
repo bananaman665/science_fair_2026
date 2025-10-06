@@ -9,7 +9,7 @@
     "architecture": "Simple CNN",
     "input_size": 128,
     "parameters": 23844,
-    "training_duration": "0:00:03.116681",
+    "training_duration": "0:00:02.906170",
     "final_accuracy": 1.0
   }
 }
