@@ -112,16 +112,27 @@ We will collect data from **3 different apple varieties** to improve model robus
 
 ---
 
-## Data Collection Schedule
+## 🧪 **IMPORTANT: Start with Pilot Study First**
 
-### Timeline: 7-Day Collection Period
+**Before beginning full data collection, complete the 7-day Pilot Study** (see `Apple_Oxidation_Pilot_Study.md`). This will determine:
+- Actual oxidation rates for each apple type at room temperature
+- Optimal photo timing intervals (every 12 hours? 24 hours? 48 hours?)
+- Whether oxidation is sufficient in 2-3 days or if we need 5-7 days
+- Which apple varieties show the clearest oxidation progression
+
+---
+
+## Data Collection Schedule
+*Note: This timeline should be adjusted based on pilot study results*
+
+### Planned Timeline: Multi-Day Collection Period
 - **Day 0:** Fresh cut (baseline photos within 15 minutes)
 - **Day 1:** 24 hours after cutting
 - **Day 2:** 48 hours after cutting
-- **Day 3:** 72 hours after cutting
-- **Day 4:** 96 hours after cutting
-- **Day 5:** 120 hours after cutting
-- **Day 6:** 144 hours after cutting
+- **Day 3:** 72 hours after cutting *(may extend based on pilot)*
+- **Day 4:** 96 hours after cutting *(if needed)*
+- **Day 5:** 120 hours after cutting *(if needed)*
+- **Day 6:** 144 hours after cutting *(if needed)*
 
 ### Daily Collection Time
 - **Consistency:** Same time each day (± 1 hour)
