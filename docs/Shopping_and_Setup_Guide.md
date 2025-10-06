@@ -2,20 +2,20 @@
 
 ## Shopping List
 
-### 🍎 Apples to Buy (Per Week)
+### 🍎 One-Time Apple Purchase
 - **3 Gala apples** (similar size, good condition)
 - **3 Granny Smith apples** (similar size, good condition)  
 - **3 Red Delicious apples** (similar size, good condition)
 
-**Total: 9 apples per week**
+**Total: 9 apples - complete your entire dataset in 3 days!**
 
 ### 📸 Photo Equipment
 - Smartphone camera
 - White paper plates (background)
 - Sharp knife for cutting
-- 3 small containers with lids (for storage)
-- Permanent marker (for labeling)
+- Small pieces of paper (for labeling apple types)
 - Paper towels (for cleanup)
+- Counter space (room temperature storage)
 
 ---
 
@@ -27,30 +27,40 @@
 3. Keep camera angle consistent (mark spot on floor)
 4. Test lighting - avoid shadows on apple
 
-### 🥶 **Storage Setup**
-1. Label 3 containers:
-   - "Gala + [Date]"
-   - "Granny Smith + [Date]"  
-   - "Red Delicious + [Date]"
-2. Clear space in refrigerator
-3. Keep containers easily accessible
+### 🏠 **Storage Setup**
+1. Clear counter space for 9 cut apple halves
+2. Prepare small paper labels for apple types
+3. Room temperature storage accelerates oxidation
+4. No refrigeration needed - faster results!
 
 ### 📱 **Phone Preparation**
-1. Clear storage space (photos take ~2MB each)
+1. Clear storage space (126 photos × ~2MB = 250MB)
 2. Create folders on phone:
-   - "Apple_Photos_Week1"
-   - "Apple_Photos_Week2" etc.
-3. Set daily reminder alarm
+   - "Apple_Photos_Fresh"
+   - "Apple_Photos_Light_Oxidation"
+   - "Apple_Photos_Heavy_Oxidation"
+3. Set 2 reminder alarms (Day 1 and Day 2)
 
 ---
 
-## ⏰ **Daily Schedule**
+## ⏰ **3-Day Schedule**
 
 **Best times for photos:**
-- **Morning (9-11 AM)**: Good natural light
-- **Afternoon (2-4 PM)**: Consistent lighting
+- **Same time each day** for consistency
+- **Good lighting** (near window or bright room)
 
-**Daily routine takes ~10 minutes total**
+**Each photo session takes ~15-20 minutes total**
+
+---
+
+## 📊 **Progress Tracking**
+
+**3-Day Goal:** 126 photos total
+- **Day 0 (Fresh):** 54 photos (6 per apple)
+- **Day 1 (Light oxidation):** 36 photos (4 per apple)  
+- **Day 2 (Heavy oxidation):** 36 photos (4 per apple)
+
+**Complete dataset in just 3 days!** ⚡
 
 ---
 
@@ -58,26 +68,13 @@
 
 ### ✅ **Good Photos**
 - Apple fills 60% of frame
-- Clear focus on cut surface
+- Clear focus on cut surface oxidation
 - Even lighting, no shadows
 - White background visible
-- Same distance each day
+- Document browning progression
 
 ### ❌ **Avoid**
 - Blurry photos
-- Dark/shadowy lighting  
+- Poor lighting on oxidation areas
 - Cluttered background
-- Too close/too far shots
-- Different angles each day
-
----
-
-## 📊 **Progress Tracking**
-
-**Week 1 Goal:** 45 photos total
-- Day 0: 15 photos (whole + cut apples)
-- Days 1-6: 30 photos (cut surfaces only)
-
-**Monthly Goal:** 180+ photos
-- 4 weeks × 45 photos = 180 photos minimum
-- More data = better ML model!
+- Inconsistent angles

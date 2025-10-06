@@ -1,101 +1,59 @@
-# 📋 Daily Apple Photo Checklist
+# 📋 Apple Photo Collection - 3 Day Process
 
-## Week 1: Apple Set #1
+## One-Time Purchase: 9 Apples Total
 
-### Day 0 (Purchase Day) ✅
-**For EACH apple type (Gala, Granny Smith, Red Delicious):**
+### Day 0 (Purchase Day - Fresh Apples) ✅
+**For EACH apple (do all 9 apples):**
 - [ ] Take photo: whole apple front
-- [ ] Take photo: whole apple side  
 - [ ] Take photo: whole apple top
-- [ ] Cut apple in half horizontally
-- [ ] Take photo: first cut surface
-- [ ] Take photo: second cut surface
-- [ ] Label container with apple type + date
-- [ ] Store in refrigerator
+- [ ] Cut apple in half horizontally  
+- [ ] Take photo: first cut surface (angle 1)
+- [ ] Take photo: first cut surface (angle 2)
+- [ ] Take photo: second cut surface (angle 1)
+- [ ] Take photo: second cut surface (angle 2)
+- [ ] Label apple type on paper
+- [ ] Leave on counter (room temperature)
 
-**Files saved:** 15 photos total (5 per apple type)
-
----
-
-### Day 1 ✅
-**For EACH cut apple:**
-- [ ] Remove from refrigerator
-- [ ] Take photo: first cut surface
-- [ ] Take photo: second cut surface  
-- [ ] Return to refrigerator
-
-**Files saved:** 6 photos total (2 per apple type)
+**Files saved:** 54 photos total (6 per apple)
 
 ---
 
-### Day 2 ✅
-**For EACH cut apple:**
-- [ ] Remove from refrigerator
-- [ ] Take photo: first cut surface
-- [ ] Take photo: second cut surface
-- [ ] Return to refrigerator
+### Day 1 (Light Oxidation - 24 hours later) ✅
+**For EACH cut apple (should show browning around edges):**
+- [ ] Take photo: first cut surface (angle 1)
+- [ ] Take photo: first cut surface (angle 2)
+- [ ] Take photo: second cut surface (angle 1)  
+- [ ] Take photo: second cut surface (angle 2)
+- [ ] Leave on counter for continued oxidation
 
-**Files saved:** 6 photos total
-
----
-
-### Day 3 ✅
-**For EACH cut apple:**
-- [ ] Remove from refrigerator
-- [ ] Take photo: first cut surface
-- [ ] Take photo: second cut surface
-- [ ] Return to refrigerator
-
-**Files saved:** 6 photos total
+**Files saved:** 36 photos total (4 per apple)
 
 ---
 
-### Day 4 ✅
-**For EACH cut apple:**
-- [ ] Remove from refrigerator
-- [ ] Take photo: first cut surface
-- [ ] Take photo: second cut surface
-- [ ] Return to refrigerator
+### Day 2 (Heavy Oxidation - 48 hours later) ✅
+**For EACH cut apple (should show significant browning):**
+- [ ] Take photo: first cut surface (angle 1)
+- [ ] Take photo: first cut surface (angle 2)
+- [ ] Take photo: second cut surface (angle 1)
+- [ ] Take photo: second cut surface (angle 2)
+- [ ] Dispose of apple (completed data collection)
 
-**Files saved:** 6 photos total
-
----
-
-### Day 5 ✅
-**For EACH cut apple:**
-- [ ] Remove from refrigerator
-- [ ] Take photo: first cut surface
-- [ ] Take photo: second cut surface
-- [ ] Return to refrigerator
-
-**Files saved:** 6 photos total
+**Files saved:** 36 photos total (4 per apple)
 
 ---
 
-### Day 6 ✅
-**For EACH cut apple:**
-- [ ] Remove from refrigerator
-- [ ] Take photo: first cut surface
-- [ ] Take photo: second cut surface
-- [ ] Return to refrigerator
-
-**Files saved:** 6 photos total
+## 📊 3-Day Summary  
+- **Total photos collected:** 126 photos
+- **Fresh apples (Day 0):** 54 photos
+- **Light oxidation (Day 1):** 36 photos
+- **Heavy oxidation (Day 2):** 36 photos
 
 ---
 
-## 📊 Week Summary
-- **Total photos collected:** 45 photos
-- **Fresh apples (Day 0-1):** 21 photos
-- **Light oxidation (Day 2-3):** 12 photos  
-- **Medium oxidation (Day 4-5):** 12 photos
-- **Heavy oxidation (Day 6):** 6 photos
+## 🔄 Optional: More Data
+If you want additional training data:
+- Wait 2 weeks and repeat with fresh apples
+- Or collect photos from friends/family doing the same process
+- 126 photos should be sufficient for good ML training!
 
----
-
-## 🔄 Repeat Process
-For more training data, repeat with additional apple sets:
-- Week 2: Apple Set #2  
-- Week 3: Apple Set #3
-- Week 4: Apple Set #4
-
-**Goal: 180+ photos total for robust ML training**
+**One 3-day collection = Complete dataset!** ⚡

@@ -1,26 +1,31 @@
 # 📸 Apple Photo Collection Guide
 ## Simple Daily Data Collection for ML Training
 
-### 🍎 Apple Types to Buy
-- **Gala** apples
-- **Granny Smith** apples  
-- **Red Delicious** apples
+### 🍎 One-Time Apple Purchase
+- **3 Gala** apples
+- **3 Granny Smith** apples  
+- **3 Red Delicious** apples
 
-### 📋 Daily Photo Collection (7 days per apple)
+**Total: 9 apples for complete dataset**
+
+### 📋 Quick Photo Collection (3 days total)
 
 #### 🔄 **Daily Routine (Same for Each Apple Type)**
 
-**Day 0** (Purchase Day):
+**Day 0** (Purchase Day - Fresh):
 1. Take apple out of bag
-2. Take 3 photos: whole apple (front, side, top)
+2. Take 2 photos: whole apple (front, top)
 3. Cut apple in half horizontally
-4. Take 3 photos: both cut surfaces
-5. Store cut apple in refrigerator in labeled container
+4. Take 4 photos: both cut surfaces (2 angles each)
+5. Store cut apple on counter (room temperature for faster oxidation)
 
-**Days 1-6** (Daily Check):
-1. Remove apple from refrigerator
-2. Take 3 photos: both cut surfaces
-3. Return to refrigerator
+**Day 1** (Light Oxidation - 24 hours later):
+1. Take 4 photos: both cut surfaces showing browning
+2. Leave on counter for continued oxidation
+
+**Day 2** (Heavy Oxidation - 48 hours later):
+1. Take 4 photos: both cut surfaces showing heavy browning
+2. Dispose of apple
 
 ---
 
@@ -51,31 +56,30 @@ Save photos as: `[apple_type]_day[X]_photo[1-3].jpg`
 ### 🗂️ **Storage Organization**
 ```
 01_raw_images/
-├── gala/
-│   ├── day_0/ (3 photos)
-│   ├── day_1/ (2 photos)
-│   ├── day_2/ (2 photos)
-│   └── ... day_6/
-├── granny_smith/
-│   └── (same structure)
-└── red_delicious/
-    └── (same structure)
+├── fresh/ (day_0 photos)
+├── light_oxidation/ (day_1 photos) 
+├── heavy_oxidation/ (day_2 photos)
+└── by_apple_type/
+    ├── gala/
+    ├── granny_smith/
+    └── red_delicious/
 ```
 
 ---
 
 ### ⚡ **Quick Checklist**
-- [ ] Buy 3 apples of each type (9 total apples)
+- [ ] Buy 9 apples total (3 of each type) - ONE TIME PURCHASE
 - [ ] Set up photo station with white background
-- [ ] Take Day 0 photos immediately after purchase
-- [ ] Cut apples in half and refrigerate
-- [ ] Take daily photos for 6 more days
+- [ ] Day 0: Take photos and cut all 9 apples
+- [ ] Day 1: Photo session (light oxidation)
+- [ ] Day 2: Final photo session (heavy oxidation)
 - [ ] Upload photos to correct folders
 
 ### 🎯 **Goal**
-**Total Photos**: 135 photos (15 per apple × 9 apples)
-- Day 0: 45 photos (whole + cut apples)
-- Days 1-6: 90 photos (cut surfaces only)
+**Total Photos**: 90 photos (10 per apple × 9 apples)
+- Day 0 (Fresh): 54 photos (6 per apple)
+- Day 1 (Light): 36 photos (4 per apple)  
+- Day 2 (Heavy): 36 photos (4 per apple)
 
 ### 💡 **Tips for Best Results**
 1. **Same time daily** - take photos at same time each day
@@ -87,9 +91,10 @@ Save photos as: `[apple_type]_day[X]_photo[1-3].jpg`
 ---
 
 ### 🏷️ **Expected Oxidation Progression**
-- **Day 0-1**: Fresh (bright, no browning)
-- **Day 2-3**: Light oxidation (slight browning edges)
-- **Day 4-5**: Medium oxidation (noticeable browning)
-- **Day 6+**: Heavy oxidation (significant browning)
+- **Day 0**: Fresh (bright, no browning)
+- **Day 1**: Light oxidation (browning around edges)
+- **Day 2**: Heavy oxidation (significant browning)
 
-**This gives you perfect training data for the 4 ML classes!** 🎯
+**Room temperature storage accelerates oxidation for faster data collection!**
+
+**This gives you perfect training data for the 3 ML classes in just 3 days!** 🎯
