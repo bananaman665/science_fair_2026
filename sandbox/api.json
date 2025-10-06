@@ -1,0 +1,22 @@
+{
+  "analysis_id": "apple_20251005_164658_4962",
+  "filename": "car1.jpg",
+  "predicted_class": "fresh",
+  "oxidation_score": 0,
+  "confidence": 0.97,
+  "processing_time_ms": 0.01,
+  "timestamp": "2025-10-05T16:46:58.537650",
+  "model_version": "real_apple_v20251005_162830",
+  "all_probabilities": {
+    "fresh": 0.97,
+    "light_oxidation": 0.009,
+    "medium_oxidation": 0.006,
+    "heavy_oxidation": 0.006
+  },
+  "feature_analysis": {
+    "brown_pixel_ratio": "0.020 (2.0%)",
+    "spot_count": "1 spots detected",
+    "brightness": "140/255 brightness",
+    "color_uniformity": "0.980 uniformity"
+  }
+}

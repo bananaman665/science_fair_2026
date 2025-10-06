@@ -1,0 +1,15 @@
+{
+  "class_names": [
+    "fresh",
+    "light_oxidation",
+    "medium_oxidation",
+    "heavy_oxidation"
+  ],
+  "model_info": {
+    "architecture": "Simple CNN",
+    "input_size": 128,
+    "parameters": 23844,
+    "training_duration": "0:00:03.116681",
+    "final_accuracy": 1.0
+  }
+}
