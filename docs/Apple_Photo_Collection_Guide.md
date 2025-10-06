@@ -14,18 +14,34 @@
 
 **Day 0** (Purchase Day - Fresh):
 1. Take apple out of bag
-2. Take 2 photos: whole apple (front, top)
-3. Cut apple in half horizontally
-4. Take 4 photos: both cut surfaces (2 angles each)
-5. Store cut apple on counter (room temperature for faster oxidation)
+2. **Photo 1**: Whole apple front view (camera at apple's eye level)
+3. **Photo 2**: Whole apple top view (camera directly above, 90°)
+4. Cut apple in half horizontally
+5. **Photo 3**: First cut half - surface view (camera 90° perpendicular to cut)
+6. **Photo 4**: First cut half - surface view (camera 30-45° angle to cut)
+7. **Photo 5**: Second cut half - surface view (camera 90° perpendicular to cut)
+8. **Photo 6**: Second cut half - surface view (camera 30-45° angle to cut)
+9. Store cut apple on counter (room temperature for faster oxidation)
+
+**Result: 6 photos per apple × 9 apples = 54 photos on Day 0**
 
 **Day 1** (Light Oxidation - 24 hours later):
-1. Take 4 photos: both cut surfaces showing browning
-2. Leave on counter for continued oxidation
+1. **Photo 1**: First cut half - surface showing browning (camera 90° perpendicular)
+2. **Photo 2**: First cut half - surface showing browning (camera 30-45° angle)
+3. **Photo 3**: Second cut half - surface showing browning (camera 90° perpendicular)
+4. **Photo 4**: Second cut half - surface showing browning (camera 30-45° angle)
+5. Leave on counter for continued oxidation
+
+**Result: 4 photos per apple × 9 apples = 36 photos on Day 1**
 
 **Day 2** (Heavy Oxidation - 48 hours later):
-1. Take 4 photos: both cut surfaces showing heavy browning
-2. Dispose of apple
+1. **Photo 1**: First cut half - heavy browning (camera 90° perpendicular)
+2. **Photo 2**: First cut half - heavy browning (camera 30-45° angle)
+3. **Photo 3**: Second cut half - heavy browning (camera 90° perpendicular)
+4. **Photo 4**: Second cut half - heavy browning (camera 30-45° angle)
+5. Dispose of apple
+
+**Result: 4 photos per apple × 9 apples = 36 photos on Day 2**
 
 ---
 
@@ -37,11 +53,25 @@
 - White background (paper plate or white paper)
 - Hold camera 12 inches away from apple
 
-#### 📏 **Photo Composition**
+#### 📐 **Camera Angle Guide**
+**90° Perpendicular Shot:**
+- Camera directly above the cut surface
+- Phone parallel to the counter/surface
+- Looking straight down at the cut surface
+
+**30-45° Angle Shot:**
+- Tilt camera 30-45 degrees from perpendicular
+- Still 12 inches away from apple
+- Captures cut surface with slight depth/dimension
+- Shows oxidation patterns more clearly
+
+#### 📏 **Photo Composition & Camera Angles**
 - Apple should fill about 60% of the photo
 - Keep background plain and clean
-- Same angle each day for consistency
-- Make sure cut surface is clearly visible
+- **Straight angle:** Camera directly above cut surface (90° perpendicular)
+- **Slight angle:** Camera tilted 30-45° from perpendicular
+- 12 inches distance from apple to camera
+- Make sure cut surface and oxidation are clearly visible
 
 #### 📁 **File Naming**
 Save photos as: `[apple_type]_day[X]_photo[1-3].jpg`
@@ -85,8 +115,10 @@ Save photos as: `[apple_type]_day[X]_photo[1-3].jpg`
 1. **Same time daily** - take photos at same time each day
 2. **Same lighting** - use same location/lighting setup
 3. **Clean surfaces** - wipe apple surfaces before photos
-4. **Multiple angles** - slightly different angles help ML training
+4. **Consistent angles** - stick to 90° and 30-45° angles exactly
 5. **Clear focus** - tap screen to focus on apple before taking photo
+6. **Mark your position** - put tape on floor where you stand for consistency
+7. **Check angles** - use phone's built-in level/grid if available
 
 ---
 

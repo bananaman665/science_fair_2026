@@ -3,18 +3,20 @@
 ## One-Time Purchase: 9 Apples Total
 
 ### Day 0 (Purchase Day - Fresh Apples) ✅
-**For EACH apple (do all 9 apples):**
-- [ ] Take photo: whole apple front
-- [ ] Take photo: whole apple top
-- [ ] Cut apple in half horizontally  
-- [ ] Take photo: first cut surface (angle 1)
-- [ ] Take photo: first cut surface (angle 2)
-- [ ] Take photo: second cut surface (angle 1)
-- [ ] Take photo: second cut surface (angle 2)
-- [ ] Label apple type on paper
-- [ ] Leave on counter (room temperature)
+**Repeat this process for ALL 9 apples (3 Gala, 3 Granny Smith, 3 Red Delicious):**
 
-**Files saved:** 54 photos total (6 per apple)
+**Per Apple Process:**
+- [ ] **Photo 1:** Whole apple - front view
+- [ ] **Photo 2:** Whole apple - top view
+- [ ] Cut apple in half horizontally  
+- [ ] **Photo 3:** First half cut surface - straight on
+- [ ] **Photo 4:** First half cut surface - slight angle
+- [ ] **Photo 5:** Second half cut surface - straight on
+- [ ] **Photo 6:** Second half cut surface - slight angle
+- [ ] Label apple type on paper next to cut halves
+- [ ] Leave both halves on counter (room temperature)
+
+**Files saved:** 54 photos total (6 photos × 9 apples)
 
 ---
 
