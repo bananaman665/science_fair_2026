@@ -11,22 +11,36 @@
 # Raw image collections (synced to Google Drive)
 01_raw_images/round_*/
 01_raw_images/collection_*/
+01_raw_images/first_collection_*/
+01_raw_images/pilot_study_*/
 01_raw_images/**/*.jpg
+01_raw_images/**/*.JPG
 01_raw_images/**/*.jpeg
+01_raw_images/**/*.JPEG
 01_raw_images/**/*.png
+01_raw_images/**/*.PNG
 01_raw_images/**/*.tiff
 01_raw_images/**/*.bmp
 01_raw_images/**/*.raw
+
+# Source image directory (raw unorganized images)
+ImageSet/
+ImageSet/**/*
 
 # Processed datasets (synced to Google Drive)
 02_processed_images/training_set/
 02_processed_images/validation_set/
 02_processed_images/test_set/
+02_processed_images/labeled_training_set/
 02_processed_images/**/*.jpg
+02_processed_images/**/*.JPG
 02_processed_images/**/*.jpeg
+02_processed_images/**/*.JPEG
 02_processed_images/**/*.png
+02_processed_images/**/*.PNG
 02_processed_images/**/*.tiff
 02_processed_images/**/*.bmp
+02_processed_images/**/*.json
 
 # Data tracking files (synced to Google Drive)
 03_data_tracking/daily_logs/

@@ -1,0 +1,17 @@
+{
+  "model_type": "regression",
+  "output_type": "days_since_cut",
+  "training_samples": 70,
+  "validation_samples": 18,
+  "validation_mae": 0.7766027450561523,
+  "validation_mse": 0.7616006731987,
+  "days_range": {
+    "min": 0.0,
+    "max": 5.0
+  },
+  "image_size": [
+    224,
+    224
+  ],
+  "parameters": 5602561
+}
