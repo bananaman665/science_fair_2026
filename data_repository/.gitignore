@@ -27,6 +27,12 @@
 ImageSet/
 ImageSet/**/*
 
+# Validation test photos
+validation_test/
+validation_test/**/*.jpg
+validation_test/**/*.JPG
+validation_test/**/*.png
+
 # Processed datasets (synced to Google Drive)
 02_processed_images/training_set/
 02_processed_images/validation_set/
