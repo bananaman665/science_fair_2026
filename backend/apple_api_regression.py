@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Apple Oxidation API - Regression Version
-Returns days since apple was cut instead of categories
+Apple Oxidation API - Regression Version with Variety-Specific Models
+Returns days since apple was cut using variety-specific or combined models
 """
 
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Query
 from fastapi.responses import JSONResponse
 import tensorflow as tf
 import numpy as np
@@ -12,31 +12,54 @@ from PIL import Image
 import io
 import json
 from pathlib import Path
+from typing import Optional
 
-app = FastAPI(title="Apple Oxidation Days API")
+app = FastAPI(title="Apple Oxidation Days API - Variety Specific")
 
-# Load model at startup
-MODEL_PATH = Path("apple_oxidation_days_model.h5")
-METADATA_PATH = Path("model_metadata_regression.json")
+# Model paths for different varieties
+MODEL_PATHS = {
+    'combined': Path("apple_oxidation_days_model_combined.h5"),
+    'gala': Path("apple_oxidation_days_model_gala.h5"),
+    'smith': Path("apple_oxidation_days_model_smith.h5")
+}
 
-model = None
-metadata = None
+METADATA_PATHS = {
+    'combined': Path("model_metadata_regression_combined.json"),
+    'gala': Path("model_metadata_regression_gala.json"),
+    'smith': Path("model_metadata_regression_smith.json")
+}
+
+# Store loaded models
+models = {}
+metadata_store = {}
 
 @app.on_event("startup")
-async def load_model():
-    """Load the trained model on startup"""
-    global model, metadata
+async def load_models():
+    """Load all available models on startup"""
+    global models, metadata_store
     
-    if MODEL_PATH.exists():
-        model = tf.keras.models.load_model(MODEL_PATH)
-        print(f"✅ Model loaded: {model.count_params():,} parameters")
-        
-        if METADATA_PATH.exists():
-            with open(METADATA_PATH, 'r') as f:
-                metadata = json.load(f)
-            print(f"✅ Metadata loaded: MAE = {metadata.get('validation_mae', 'N/A'):.3f} days")
-    else:
-        print(f"⚠️  Model not found at {MODEL_PATH}")
+    print("\n🍎 Loading Apple Oxidation Models...")
+    print("=" * 50)
+    
+    for variety, model_path in MODEL_PATHS.items():
+        if model_path.exists():
+            try:
+                models[variety] = tf.keras.models.load_model(model_path)
+                print(f"✅ {variety.upper():10} model loaded: {models[variety].count_params():,} parameters")
+                
+                metadata_path = METADATA_PATHS[variety]
+                if metadata_path.exists():
+                    with open(metadata_path, 'r') as f:
+                        metadata_store[variety] = json.load(f)
+                    mae = metadata_store[variety].get('validation_mae', 'N/A')
+                    print(f"   {'':10} MAE = {mae:.3f} days")
+            except Exception as e:
+                print(f"❌ {variety.upper():10} failed to load: {e}")
+        else:
+            print(f"⚠️  {variety.upper():10} model not found at {model_path}")
+    
+    print("=" * 50)
+    print(f"Total models loaded: {len(models)}/3\n")
 
 def preprocess_image(image_bytes):
     """Preprocess uploaded image for prediction"""
@@ -59,35 +82,59 @@ def preprocess_image(image_bytes):
 @app.get("/")
 async def root():
     """API info"""
+    available_models = list(models.keys())
     return {
-        "name": "Apple Oxidation Days Prediction API",
-        "version": "2.0",
+        "name": "Apple Oxidation Days Prediction API - Variety Specific",
+        "version": "3.0",
         "model_type": "regression",
-        "description": "Upload an apple photo to predict how many days since it was cut"
+        "description": "Upload an apple photo to predict how many days since it was cut",
+        "available_models": available_models,
+        "usage": "Add ?variety=gala or ?variety=smith to use variety-specific models"
     }
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
     return {
-        "status": "healthy" if model is not None else "model_not_loaded",
-        "model_loaded": model is not None,
-        "metadata": metadata
+        "status": "healthy" if len(models) > 0 else "no_models_loaded",
+        "models_loaded": list(models.keys()),
+        "metadata": {k: v for k, v in metadata_store.items()}
     }
 
 @app.post("/analyze")
-async def analyze_apple(file: UploadFile = File(...)):
+async def analyze_apple(
+    file: UploadFile = File(...),
+    variety: Optional[str] = Query('combined', description="Apple variety: 'combined', 'gala', or 'smith'")
+):
     """
     Analyze apple photo and predict days since cut
+    
+    Args:
+        file: Image file of the apple
+        variety: Which model to use - 'combined' (default), 'gala', or 'smith'
     
     Returns:
     - days: Predicted days since apple was cut
     - confidence_interval: Estimated range based on validation MAE
     - interpretation: Human-readable interpretation
+    - model_used: Which variety model was used
     """
     
-    if model is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
+    # Validate variety
+    variety = variety.lower()
+    if variety not in ['combined', 'gala', 'smith']:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid variety. Must be 'combined', 'gala', or 'smith'. Got: {variety}"
+        )
+    
+    # Check if model is loaded
+    if variety not in models:
+        available = list(models.keys())
+        raise HTTPException(
+            status_code=503, 
+            detail=f"Model '{variety}' not loaded. Available models: {available}"
+        )
     
     # Validate file type
     if not file.content_type.startswith('image/'):
@@ -98,12 +145,15 @@ async def analyze_apple(file: UploadFile = File(...)):
         image_bytes = await file.read()
         image_array = preprocess_image(image_bytes)
         
-        # Make prediction
+        # Make prediction using selected model
+        model = models[variety]
+        metadata = metadata_store.get(variety, {})
+        
         prediction = model.predict(image_array, verbose=0)
         predicted_days = float(prediction[0][0])
         
         # Calculate confidence interval based on validation MAE
-        mae = metadata.get('validation_mae', 0.5) if metadata else 0.5
+        mae = metadata.get('validation_mae', 0.5)
         confidence_interval = {
             'lower': max(0, predicted_days - mae),
             'upper': predicted_days + mae
@@ -141,8 +191,9 @@ async def analyze_apple(file: UploadFile = File(...)):
                 "oxidation_level": oxidation_level
             },
             "model_info": {
-                "validation_mae": metadata.get('validation_mae') if metadata else None,
-                "training_samples": metadata.get('training_samples') if metadata else None
+                "variety_used": variety,
+                "validation_mae": metadata.get('validation_mae'),
+                "training_samples": metadata.get('training_samples')
             }
         }
         
@@ -150,16 +201,32 @@ async def analyze_apple(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Error analyzing image: {str(e)}")
 
 @app.post("/batch_analyze")
-async def batch_analyze(files: list[UploadFile] = File(...)):
+async def batch_analyze(
+    files: list[UploadFile] = File(...),
+    variety: Optional[str] = Query('combined', description="Apple variety: 'combined', 'gala', or 'smith'")
+):
     """
     Analyze multiple apple photos at once
     
     Useful for comparing oxidation progression
     """
     
-    if model is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
+    # Validate variety
+    variety = variety.lower()
+    if variety not in ['combined', 'gala', 'smith']:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid variety. Must be 'combined', 'gala', or 'smith'"
+        )
     
+    if variety not in models:
+        available = list(models.keys())
+        raise HTTPException(
+            status_code=503, 
+            detail=f"Model '{variety}' not loaded. Available models: {available}"
+        )
+    
+    model = models[variety]
     results = []
     
     for file in files:
@@ -185,6 +252,7 @@ async def batch_analyze(files: list[UploadFile] = File(...)):
     return {
         "total_files": len(files),
         "successful": sum(1 for r in results if r["success"]),
+        "variety_used": variety,
         "results": results
     }
 

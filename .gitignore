@@ -43,6 +43,31 @@ temp/
 *.temp
 
 # ==============================================================================
+# DATA FILES (large files, generated content)
+# ==============================================================================
+
+# Large image datasets
+data_repository/01_raw_images/*/
+data_repository/compare_images/
+data_repository/compare_images_cropped*/
+
+# Generated model files
+backend/*.h5
+backend/*.keras
+backend/*.json
+backend/*.png
+*.h5
+*.keras
+
+# Temporary processing files
+*_cropped/
+cropping_comparison/
+cropping_stats.json
+
+# Test results
+cropped_hypothesis_test_results.json
+
+# ==============================================================================
 # KEEP THESE FILES (Override patterns from subdirectories)
 # ==============================================================================
 
@@ -51,3 +76,7 @@ temp/
 !docs/**/*.txt
 !**/README*
 !**/.gitkeep
+
+# Keep structure markers
+!data_repository/01_raw_images/README.md
+!backend/README.md

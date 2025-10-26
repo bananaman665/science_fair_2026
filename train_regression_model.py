@@ -2,6 +2,7 @@
 """
 Regression Model Training - Days Since Cut Prediction
 Predicts continuous days of oxidation instead of discrete categories
+SUPPORTS VARIETY-SPECIFIC MODELS: gala, smith, combined
 """
 
 import numpy as np
@@ -13,11 +14,22 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
-# Paths
+# Paths - BACK TO ORIGINAL IMAGES FOR TRAINING
 DATA_DIR = Path("data_repository/01_raw_images/first_collection_oct2025")
 MODEL_DIR = Path("backend")
-MODEL_PATH = MODEL_DIR / "apple_oxidation_days_model.h5"
-METADATA_PATH = MODEL_DIR / "model_metadata_regression.json"
+
+# Model paths for different varieties
+MODEL_PATHS = {
+    'combined': MODEL_DIR / "apple_oxidation_days_model_combined.h5",
+    'gala': MODEL_DIR / "apple_oxidation_days_model_gala.h5",
+    'smith': MODEL_DIR / "apple_oxidation_days_model_smith.h5"
+}
+
+METADATA_PATHS = {
+    'combined': MODEL_DIR / "model_metadata_regression_combined.json",
+    'gala': MODEL_DIR / "model_metadata_regression_gala.json",
+    'smith': MODEL_DIR / "model_metadata_regression_smith.json"
+}
 
 # Image settings
 IMG_HEIGHT = 224
@@ -58,16 +70,31 @@ def load_and_preprocess_image(image_path):
         print(f"❌ Error loading {image_path}: {e}")
         return None
 
-def collect_training_data():
-    """Collect all photos with their days labels"""
+def collect_training_data(variety_filter=None):
+    """
+    Collect all photos with their days labels
     
-    print("\n📸 Collecting training data from photos...")
+    Args:
+        variety_filter: 'gala', 'smith', or None for all
+    """
+    
+    print(f"\n📸 Collecting training data from photos...")
+    if variety_filter:
+        print(f"   Filtering for: {variety_filter}")
+    else:
+        print(f"   Using ALL varieties (combined model)")
     
     images = []
     labels = []  # Days since cut (continuous)
     filenames = []
     
     for apple_type in ['gala', 'granny_smith']:
+        # Skip if filtering and this isn't the target variety
+        if variety_filter == 'gala' and apple_type != 'gala':
+            continue
+        if variety_filter == 'smith' and apple_type != 'granny_smith':
+            continue
+            
         apple_dir = DATA_DIR / apple_type
         if not apple_dir.exists():
             continue
@@ -127,18 +154,32 @@ def create_regression_model():
     
     return model
 
-def train_model():
-    """Train the regression model"""
+def train_model(variety='combined'):
+    """
+    Train the regression model for a specific variety
+    
+    Args:
+        variety: 'combined', 'gala', or 'smith'
+    """
+    
+    variety_names = {
+        'combined': 'All Varieties',
+        'gala': 'Gala Apples Only',
+        'smith': 'Granny Smith Apples Only'
+    }
     
     print("\n🍎 Apple Oxidation Days Prediction - Regression Training")
     print("=" * 70)
+    print(f"   Training model: {variety_names.get(variety, variety)}")
+    print("=" * 70)
     
-    # Collect data
-    images, labels, filenames = collect_training_data()
+    # Collect data with variety filter
+    variety_filter = None if variety == 'combined' else variety
+    images, labels, filenames = collect_training_data(variety_filter)
     
     if len(images) == 0:
         print("❌ No training data found!")
-        return
+        return None, None
     
     # Split into train/validation sets (80/20)
     X_train, X_val, y_train, y_val = train_test_split(
@@ -174,12 +215,14 @@ def train_model():
     
     # Save model
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
-    model.save(MODEL_PATH)
-    print(f"\n💾 Model saved to: {MODEL_PATH}")
+    model_path = MODEL_PATHS[variety]
+    model.save(model_path)
+    print(f"\n💾 Model saved to: {model_path}")
     
     # Save metadata
     metadata = {
         'model_type': 'regression',
+        'variety': variety,
         'output_type': 'days_since_cut',
         'training_samples': len(X_train),
         'validation_samples': len(X_val),
@@ -193,13 +236,14 @@ def train_model():
         'parameters': model.count_params()
     }
     
-    with open(METADATA_PATH, 'w') as f:
+    metadata_path = METADATA_PATHS[variety]
+    with open(metadata_path, 'w') as f:
         json.dump(metadata, f, indent=2)
     
-    print(f"💾 Metadata saved to: {METADATA_PATH}")
+    print(f"💾 Metadata saved to: {metadata_path}")
     
     # Plot training history
-    plot_training_history(history)
+    plot_training_history(history, variety)
     
     # Test predictions on validation set
     print("\n🔍 Sample Predictions:")
@@ -215,11 +259,11 @@ def train_model():
         error = abs(actual - predicted)
         print(f"{actual:12.2f} | {predicted:15.2f} | {error:10.2f}")
     
-    print("\n✅ Training complete!")
+    print(f"\n✅ Training complete for {variety} model!")
     
     return model, history
 
-def plot_training_history(history):
+def plot_training_history(history, variety='combined'):
     """Plot training history"""
     
     plt.figure(figsize=(12, 4))
@@ -230,7 +274,7 @@ def plot_training_history(history):
     plt.plot(history.history['val_mae'], label='Validation MAE')
     plt.xlabel('Epoch')
     plt.ylabel('Mean Absolute Error (days)')
-    plt.title('Model MAE Over Time')
+    plt.title(f'Model MAE Over Time ({variety})')
     plt.legend()
     plt.grid(True)
     
@@ -240,27 +284,57 @@ def plot_training_history(history):
     plt.plot(history.history['val_loss'], label='Validation Loss')
     plt.xlabel('Epoch')
     plt.ylabel('Mean Squared Error')
-    plt.title('Model Loss Over Time')
+    plt.title(f'Model Loss Over Time ({variety})')
     plt.legend()
     plt.grid(True)
     
     plt.tight_layout()
     
     # Save plot
-    plot_path = MODEL_DIR / 'training_history_regression.png'
+    plot_path = MODEL_DIR / f'training_history_regression_{variety}.png'
     plt.savefig(plot_path, dpi=150, bbox_inches='tight')
     print(f"\n📊 Training plot saved to: {plot_path}")
     
     plt.close()
 
 if __name__ == "__main__":
-    print("🍎 Apple Oxidation Days Prediction Model")
-    print("Trains a regression model to predict days since apple was cut")
+    print("🍎 Apple Oxidation Days Prediction Model - Variety-Specific Training")
+    print("Trains regression models to predict days since apple was cut")
     print()
     
-    train_model()
+    import sys
+    
+    # Check if user wants specific variety
+    if len(sys.argv) > 1:
+        variety = sys.argv[1].lower()
+        if variety not in ['combined', 'gala', 'smith']:
+            print(f"❌ Unknown variety: {variety}")
+            print("   Usage: python train_regression_model.py [combined|gala|smith]")
+            print("   Or run without args to train all three models")
+            sys.exit(1)
+        
+        print(f"Training single model: {variety}")
+        train_model(variety)
+    else:
+        # Train all three models
+        print("Training ALL THREE models (combined, gala, smith)")
+        print("=" * 70)
+        
+        for variety in ['combined', 'gala', 'smith']:
+            print(f"\n\n{'='*70}")
+            print(f"STARTING: {variety.upper()} MODEL")
+            print(f"{'='*70}\n")
+            
+            train_model(variety)
+            
+            print(f"\n{'='*70}")
+            print(f"COMPLETED: {variety.upper()} MODEL")
+            print(f"{'='*70}\n")
     
     print("\n🎯 Next Steps:")
-    print("  1. Update FastAPI backend to use regression model")
-    print("  2. API will return: 'This apple was cut X.X days ago'")
-    print("  3. Much more useful than category labels!")
+    print("  1. Update FastAPI backend to support variety parameter")
+    print("  2. Update validation testing to compare all three models")
+    print("  3. API can now use variety-specific models for better accuracy!")
+    print("\n📊 Models saved:")
+    for variety, path in MODEL_PATHS.items():
+        print(f"   {variety}: {path}")

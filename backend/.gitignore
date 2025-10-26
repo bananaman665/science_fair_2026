@@ -109,7 +109,7 @@ dmypy.json
 # MACHINE LEARNING
 # ==============================================================================
 
-# Model files
+# Model files (all varieties: combined, gala, smith)
 *.h5
 *.pkl
 *.joblib
@@ -120,12 +120,18 @@ dmypy.json
 *.weights
 *.model
 
+# Model metadata files
+model_metadata_*.json
+
 # Training data and outputs
 models/trained/
 models/checkpoints/
 models/logs/
 training_data/
 training_outputs/
+
+# Training history plots
+training_history_*.png
 
 # ML experiment tracking
 mlruns/
