@@ -121,24 +121,28 @@ Response:
 
 ### When to use each model:
 
-| Apple Variety | Recommended Model | Expected MAE |
-|--------------|-------------------|--------------|
-| Gala | `variety=gala` | 0.75 days |
-| Granny Smith | `variety=smith` | 0.57 days |
-| Unknown variety | `variety=combined` | 1.40 days |
-| Mixed varieties | `variety=combined` | 1.40 days |
+| Apple Variety | Recommended Model | Notes |
+|--------------|-------------------|-------|
+| Gala | `variety=gala` | For red/yellow apples |
+| Granny Smith | `variety=smith` | For green apples (best tested) |
+| Unknown variety | `variety=combined` | Fallback option |
+
+**Important**: For best results, crop test images to remove backgrounds first using `manual_crop_apples.py`
 
 ### Performance Comparison
 
-Testing on 8 Granny Smith photos:
+Testing on 8 Granny Smith photos (using cropped test images):
 
-| Model Used | MAE (days) | MAE (hours) | Performance |
-|------------|------------|-------------|-------------|
-| Smith-specific | **1.47** | 35.2 | ✅ Best |
-| Combined | 2.02 | 48.4 | ⚠️ Fair |
-| Gala-specific | 2.29 | 54.9 | ❌ Poor |
+| Strategy | MAE (days) | MAE (hours) | Performance |
+|----------|------------|-------------|-------------|
+| **Original train + Cropped test (Smith)** | **1.158** | 27.8 | ✅ **Best** |
+| Original train + Original test (Smith) | 1.470 | 35.3 | ⚠️ Baseline |
+| Original train + Cropped test (Gala) | 1.592 | 38.2 | ❌ Wrong variety |
 
-**Key Insight**: Using the wrong variety model makes predictions 36% worse!
+**Key Insight**: 
+- Use the correct variety model (Smith for green apples)
+- Crop test images to remove background noise
+- Achieved 21.2% improvement with optimal strategy
 
 ## 🐍 Python Example
 
@@ -300,10 +304,9 @@ Solution: Check which models loaded at startup. May need to retrain missing mode
 
 ## 📚 Further Reading
 
-- `VARIETY_SPECIFIC_MODELS.md` - Detailed performance analysis
-- `VALIDATION_RESULTS_ANALYSIS.md` - Original validation findings
+- `MODEL_RESULTS.md` - Detailed performance analysis and findings
 - `/docs` endpoint - Interactive API documentation
 
 ---
 
-**Questions?** Check the Science Fair 2026 documentation or run the validation tests to see expected performance.
+**Questions?** Check the Science Fair 2026 documentation or run `python test_both_varieties.py` to see expected performance.
