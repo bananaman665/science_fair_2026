@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+README.md
+BACKEND_ARCHITECTURE.md
+STUDY_GUIDE.md
+*.md
+ml_training/
+*.png

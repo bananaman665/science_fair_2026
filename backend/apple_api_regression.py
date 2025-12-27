@@ -16,17 +16,19 @@ from typing import Optional
 
 app = FastAPI(title="Apple Oxidation Days API - Variety Specific")
 
-# Model paths for different varieties
+# Model paths for different varieties (4 models total)
 MODEL_PATHS = {
     'combined': Path("apple_oxidation_days_model_combined.h5"),
     'gala': Path("apple_oxidation_days_model_gala.h5"),
-    'smith': Path("apple_oxidation_days_model_smith.h5")
+    'smith': Path("apple_oxidation_days_model_smith.h5"),
+    'red_delicious': Path("apple_oxidation_days_model_red_delicious.h5")
 }
 
 METADATA_PATHS = {
     'combined': Path("model_metadata_regression_combined.json"),
     'gala': Path("model_metadata_regression_gala.json"),
-    'smith': Path("model_metadata_regression_smith.json")
+    'smith': Path("model_metadata_regression_smith.json"),
+    'red_delicious': Path("model_metadata_regression_red_delicious.json")
 }
 
 # Store loaded models
@@ -59,7 +61,7 @@ async def load_models():
             print(f"⚠️  {variety.upper():10} model not found at {model_path}")
     
     print("=" * 50)
-    print(f"Total models loaded: {len(models)}/3\n")
+    print(f"Total models loaded: {len(models)}/4\n")
 
 def preprocess_image(image_bytes):
     """Preprocess uploaded image for prediction"""
@@ -85,11 +87,12 @@ async def root():
     available_models = list(models.keys())
     return {
         "name": "Apple Oxidation Days Prediction API - Variety Specific",
-        "version": "3.0",
+        "version": "4.0",
         "model_type": "regression",
         "description": "Upload an apple photo to predict how many days since it was cut",
         "available_models": available_models,
-        "usage": "Add ?variety=gala or ?variety=smith to use variety-specific models"
+        "supported_varieties": ["combined", "gala", "smith", "red_delicious"],
+        "usage": "Add ?variety=gala, ?variety=smith, or ?variety=red_delicious to use variety-specific models"
     }
 
 @app.get("/health")
@@ -101,31 +104,34 @@ async def health_check():
         "metadata": {k: v for k, v in metadata_store.items()}
     }
 
+# Valid variety options
+VALID_VARIETIES = ['combined', 'gala', 'smith', 'red_delicious']
+
 @app.post("/analyze")
 async def analyze_apple(
     file: UploadFile = File(...),
-    variety: Optional[str] = Query('combined', description="Apple variety: 'combined', 'gala', or 'smith'")
+    variety: Optional[str] = Query('combined', description="Apple variety: 'combined', 'gala', 'smith', or 'red_delicious'")
 ):
     """
     Analyze apple photo and predict days since cut
-    
+
     Args:
         file: Image file of the apple
-        variety: Which model to use - 'combined' (default), 'gala', or 'smith'
-    
+        variety: Which model to use - 'combined' (default), 'gala', 'smith', or 'red_delicious'
+
     Returns:
     - days: Predicted days since apple was cut
     - confidence_interval: Estimated range based on validation MAE
     - interpretation: Human-readable interpretation
     - model_used: Which variety model was used
     """
-    
+
     # Validate variety
     variety = variety.lower()
-    if variety not in ['combined', 'gala', 'smith']:
+    if variety not in VALID_VARIETIES:
         raise HTTPException(
-            status_code=400, 
-            detail=f"Invalid variety. Must be 'combined', 'gala', or 'smith'. Got: {variety}"
+            status_code=400,
+            detail=f"Invalid variety. Must be one of {VALID_VARIETIES}. Got: {variety}"
         )
     
     # Check if model is loaded
@@ -203,20 +209,20 @@ async def analyze_apple(
 @app.post("/batch_analyze")
 async def batch_analyze(
     files: list[UploadFile] = File(...),
-    variety: Optional[str] = Query('combined', description="Apple variety: 'combined', 'gala', or 'smith'")
+    variety: Optional[str] = Query('combined', description="Apple variety: 'combined', 'gala', 'smith', or 'red_delicious'")
 ):
     """
     Analyze multiple apple photos at once
-    
+
     Useful for comparing oxidation progression
     """
-    
+
     # Validate variety
     variety = variety.lower()
-    if variety not in ['combined', 'gala', 'smith']:
+    if variety not in VALID_VARIETIES:
         raise HTTPException(
-            status_code=400, 
-            detail=f"Invalid variety. Must be 'combined', 'gala', or 'smith'"
+            status_code=400,
+            detail=f"Invalid variety. Must be one of {VALID_VARIETIES}"
         )
     
     if variety not in models:
