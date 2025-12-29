@@ -15,9 +15,9 @@ const config: CapacitorConfig = {
       permissions: ['camera', 'photos'],
     },
     Keyboard: {
-      resize: 'native',
+      resize: 'body',
       style: 'dark',
-      resizeOnFullScreen: true,
+      resizeOnFullScreen: false,
     },
   },
 };
