@@ -23,7 +23,7 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100vh;
+  height: 100dvh;
   background-color: #ffffff;
   overflow: hidden;
 }
@@ -31,6 +31,25 @@ body {
 #root {
   width: 100%;
   height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Input styling to prevent iOS zoom and layout issues */
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+  font-size: 16px;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 /* Safe area support for iOS notches and safe zones */
