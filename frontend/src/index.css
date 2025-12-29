@@ -26,6 +26,8 @@ body {
   height: 100dvh;
   background-color: #ffffff;
   overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 #root {

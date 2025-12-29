@@ -57,7 +57,7 @@ export const RegisterPage: React.FC = () => {
   if (showSuccess) {
     return (
       <div className="fixed inset-0 bg-gradient-to-br from-primary to-green-700 flex items-center justify-center p-4 overflow-hidden">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center max-h-[90vh] overflow-y-auto">
           <div className="text-6xl mb-4">✉️</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Check Your Email</h2>
           <p className="text-gray-600 mb-6">
@@ -74,7 +74,7 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-primary to-green-700 flex items-center justify-center p-4 overflow-hidden">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 max-h-[90vh] overflow-y-auto">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🍎</div>
           <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
@@ -93,7 +93,7 @@ export const RegisterPage: React.FC = () => {
               Email
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
               <input
                 type="email"
                 value={email}
@@ -111,7 +111,7 @@ export const RegisterPage: React.FC = () => {
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
               <input
                 type="password"
                 value={password}
@@ -130,7 +130,7 @@ export const RegisterPage: React.FC = () => {
               Confirm Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
               <input
                 type="password"
                 value={confirmPassword}
