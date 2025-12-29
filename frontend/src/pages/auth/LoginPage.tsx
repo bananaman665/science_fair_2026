@@ -4,6 +4,7 @@ import { Mail, Lock, LogIn } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { Button } from '../../components/common/Button';
 import { AppleIcon, GoogleIcon } from '../../components/auth/AuthIcons';
+import { useIOSKeyboardFix } from '../../hooks/useIOSKeyboardFix';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -11,6 +12,9 @@ export const LoginPage: React.FC = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Fix iOS keyboard scroll issues
+  useIOSKeyboardFix();
 
   // Redirect if already logged in
   useEffect(() => {
