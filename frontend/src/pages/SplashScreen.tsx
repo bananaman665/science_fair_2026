@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { AppleIcon } from '../components/auth/AuthIcons';
 
 export const SplashScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -25,11 +24,7 @@ export const SplashScreen: React.FC = () => {
   return (
     <div className="h-screen bg-gradient-to-br from-primary to-green-700 flex items-center justify-center">
       <div className="text-center text-white space-y-4">
-        <div className="mb-4 flex justify-center">
-          <div style={{ width: '80px', height: '80px' }}>
-            <AppleIcon />
-          </div>
-        </div>
+        <div className="text-6xl mb-4">🍎</div>
         <h1 className="text-4xl font-bold">Apple Oxidation</h1>
         <p className="text-xl opacity-90">Science Fair 2026</p>
       </div>
