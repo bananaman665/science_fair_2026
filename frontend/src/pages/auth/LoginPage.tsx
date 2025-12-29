@@ -44,7 +44,7 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col bg-gradient-to-b from-blue-500 to-blue-400 overflow-y-auto">
       {/* Header with App Name */}
-      <div className="flex-shrink-0 pt-8 pb-12">
+      <div className="flex-shrink-0 pt-20 pb-12">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-white">Apple Oxidation</h1>
         </div>
