@@ -42,7 +42,7 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-primary to-green-700 flex items-center justify-center p-4 overflow-hidden">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 max-h-[90dvh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 overflow-hidden">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🍎</div>
           <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
