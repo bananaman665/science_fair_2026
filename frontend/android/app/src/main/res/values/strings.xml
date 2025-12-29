@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Apple Oxidation</string>
+    <string name="title_activity_main">Apple Oxidation</string>
+    <string name="package_name">com.sciencefair.appleoxidation</string>
+    <string name="custom_url_scheme">com.sciencefair.appleoxidation</string>
+</resources>

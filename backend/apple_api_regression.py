@@ -6,6 +6,7 @@ Returns days since apple was cut using variety-specific or combined models
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Query
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import tensorflow as tf
 import numpy as np
 from PIL import Image
@@ -15,6 +16,28 @@ from pathlib import Path
 from typing import Optional
 
 app = FastAPI(title="Apple Oxidation Days API - Variety Specific")
+
+# CORS Configuration
+# Allow requests from frontend (local dev, production, and mobile apps)
+origins = [
+    "http://localhost:5173",              # Vite dev server
+    "http://localhost:4173",              # Vite preview
+    "http://127.0.0.1:5173",              # Alternative localhost
+    "capacitor://localhost",              # iOS Capacitor app
+    "ionic://localhost",                  # iOS alternative
+    "http://localhost",                   # Android Capacitor app
+    # Add your production frontend URLs here when deploying:
+    # "https://your-app.vercel.app",
+    # "https://your-app.netlify.app",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,                # Allowed origins
+    allow_credentials=True,               # Allow cookies/auth headers
+    allow_methods=["*"],                  # Allow all HTTP methods
+    allow_headers=["*"],                  # Allow all headers
+)
 
 # Model paths for different varieties (4 models total)
 MODEL_PATHS = {

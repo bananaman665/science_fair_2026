@@ -1,104 +1,45 @@
-# Frontend - Flutter Mobile App
-# Science Fair 2025 - Apple Oxidation Detection
-
-# ==============================================================================
-# FLUTTER / DART
-# ==============================================================================
-
-# Miscellaneous
-*.class
+# Logs
+logs
 *.log
-*.pyc
-*.swp
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
-.atom/
-.buildlog/
-.history
-.svn/
-migrate_working_dir/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
+# Environment variables
+.env
+.env.local
+.env.production.local
+.env.development.local
+.env.test.local
 
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
-.pub-cache/
-.pub/
-/build/
+# Build outputs
+build
+.output
+.vercel
+.netlify
 
-# Symbolication related
-app.*.symbols
+# Testing
+coverage
 
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-
-# iOS build artifacts
-/ios/Flutter/Flutter.framework
-/ios/Flutter/Flutter.podspec
-/ios/Runner.xcworkspace/
-
-# ==============================================================================
-# PLATFORM SPECIFIC
-# ==============================================================================
-
-# Android
-android/app/release/
-android/key.properties
-android/app/upload-keystore.jks
-
-# iOS
-ios/Runner/GoogleService-Info.plist
-ios/firebase_app_id_file.json
-
-# Web
-web/firebase-config.js
-
-# ==============================================================================
-# TESTING & DEBUGGING
-# ==============================================================================
-
-# Coverage
-coverage/
-test/coverage/
-
-# Debug symbols
-*.dSYM/
-
-# ==============================================================================
-# ASSETS & RESOURCES
-# ==============================================================================
-
-# Large image assets (keep small icons/samples)
-assets/images/large/
-assets/test_images/bulk/
-
-# Keep sample images for testing
-!assets/images/samples/
-!assets/icons/
-!assets/test_images/samples/
-
-# ==============================================================================
-# KEEP THESE FILES
-# ==============================================================================
-
-# Keep essential config files
-!pubspec.yaml
-!pubspec.lock
-!analysis_options.yaml
-!lib/**/*.dart
-!test/**/*.dart
-!assets/fonts/
-!assets/icons/
+# Misc
+.turbo
+*.tsbuildinfo
