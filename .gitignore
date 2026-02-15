@@ -21,6 +21,9 @@ config/secrets.json
 # DEVELOPMENT TOOLS (Global)
 # ==============================================================================
 
+# Node
+node_modules/
+
 # IDEs
 .vscode/settings.json
 *.swp
