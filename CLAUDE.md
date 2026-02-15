@@ -80,6 +80,18 @@ source .venv/bin/activate       # First time: python3 -m venv .venv && pip insta
 python apple_api_regression.py  # Runs at http://localhost:8000, docs at /docs
 ```
 
+## Production API (Google Cloud Run)
+
+- **Live URL:** https://apple-oxidation-api-213429152907.us-central1.run.app
+- **Docs:** https://apple-oxidation-api-213429152907.us-central1.run.app/docs
+- **GCP Project:** `science-fair-2026` (project #213429152907)
+- **Region:** `us-central1`
+- **Config:** 1Gi memory, 1 CPU, scales to zero, max 2 instances
+- **Access:** Public (no auth required to call the API)
+
+The API is identical to the local version. Frontend developers can point to this URL
+instead of running the backend locally.
+
 ## Important Technical Notes
 
 - **Python 3.12+** required. TensorFlow 2.15 does NOT work with 3.12; use 2.16+.
@@ -97,8 +109,9 @@ python apple_api_regression.py  # Runs at http://localhost:8000, docs at /docs
 
 ## Frontend
 
-React + Vite app with Capacitor for iOS/Android. Uses Supabase for auth (social login only).
-The backend CORS config already allows requests from Vite dev server, Capacitor, and iOS/Android.
+React + Vite app with Capacitor for iOS/Android. Currently uses Supabase for auth
+(social login only) — migrating to Firebase. Firebase project setup is complete
+(Firestore + Google Auth + web app config). See ROADMAP.md for migration steps.
 
 ```bash
 cd frontend
@@ -109,11 +122,13 @@ npx cap open ios     # Open in Xcode
 npx cap open android # Open in Android Studio
 ```
 
+Frontend developers do NOT need to run the backend locally — they can point to the
+Cloud Run API directly. The API is public, no auth/keys needed.
+
 ## Where We Left Off
 
-- All 4 variety-specific regression models trained and verified working
-- FastAPI backend running locally with all models loading correctly
-- API tested via curl with training images (day 0 fresh, day 6 oxidized, etc.)
-- Docker deployment config in place for Google Cloud Run
-- Frontend mobile app exists with auth, scanning UI, and history
-- Git repo cleaned up (removed node_modules, Capacitor build artifacts from tracking)
+- Backend: fully deployed and working on Cloud Run (all 4 models healthy)
+- API tested both locally and in production via curl
+- Firebase: project setup complete (Firestore, Google Auth, web app registered)
+- Frontend: exists with auth, scanning UI, and history — needs Supabase-to-Firebase migration
+- See **[ROADMAP.md](ROADMAP.md)** for remaining tasks (sections 4 & 5 for frontend team)
