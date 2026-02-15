@@ -1,228 +1,155 @@
 # Apple Oxidation API - Usage Guide
 
-## 🚀 Quick Start
+## Quick Start
 
-### Start the API Server
+### 1. Set up the Python environment (first time only)
 ```bash
-cd /Users/andrew/projects/science_fair_2026/backend
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Requirements**: Python 3.12+, TensorFlow 2.16+ (requirements.txt handles this).
+
+### 2. Start the API server
+```bash
+# Option A: From project root
+./start_regression_api.sh
+
+# Option B: Manual
+cd backend
+source .venv/bin/activate
 python apple_api_regression.py
 ```
 
-Server will be available at: `http://localhost:8000`  
-API docs: `http://localhost:8000/docs`
+- Server: **http://localhost:8000**
+- Interactive Swagger docs: **http://localhost:8000/docs**
 
-## 📋 Available Models
-
-The API loads three models at startup:
-
-1. **Combined Model** (default) - Trained on all varieties
-2. **Gala Model** - Optimized for Gala apples (0.750 days MAE)
-3. **Smith Model** - Optimized for Granny Smith apples (0.568 days MAE)
-
-## 🔧 API Endpoints
-
-### 1. Health Check
+### 3. Verify models loaded
 ```bash
 curl http://localhost:8000/health
 ```
 
-Response:
-```json
-{
-  "status": "healthy",
-  "models_loaded": ["combined", "gala", "smith"],
-  "metadata": {
-    "combined": { "validation_mae": 1.395, ... },
-    "gala": { "validation_mae": 0.750, ... },
-    "smith": { "validation_mae": 0.568, ... }
-  }
-}
+You should see `"status": "healthy"` and all 4 models in `models_loaded`.
+
+**Note on paths**: The API resolves model paths relative to the script location
+(`backend/`), so it works regardless of which directory you launch from.
+
+## Available Models
+
+4 variety-specific CNN regression models (MobileNetV2, 224x224 input):
+
+| Model | Variety Param | Samples | Validation MAE | Best For |
+|-------|---------------|---------|----------------|----------|
+| Red Delicious | `red_delicious` | 83 | 0.75 days | Red apples |
+| Granny Smith | `smith` | 83 | 0.86 days | Green apples |
+| Gala | `gala` | 83 | 1.18 days | Red/yellow apples |
+| Combined | `combined` | 249 | 1.20 days | Unknown variety (fallback) |
+
+Always use the variety-specific model when you know the apple type. The wrong
+variety model can degrade accuracy by 30%+.
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | API info & available models |
+| GET | `/health` | Health check with model status |
+| POST | `/analyze?variety=X` | Analyze single image |
+| POST | `/batch_analyze?variety=X` | Analyze multiple images |
+
+## Testing with curl
+
+### Health check
+```bash
+curl http://localhost:8000/health
 ```
 
-### 2. Analyze Single Apple
-
-#### Using Combined Model (Default)
+### Analyze a single apple
 ```bash
+# Granny Smith model
+curl -X POST "http://localhost:8000/analyze?variety=smith" \
+  -F "file=@path/to/apple_photo.jpg"
+
+# Combined model (default if no variety param)
 curl -X POST "http://localhost:8000/analyze" \
-     -F "file=@path/to/apple_photo.jpg"
+  -F "file=@path/to/apple_photo.jpg"
 ```
 
-#### Using Gala-Specific Model
-```bash
-curl -X POST "http://localhost:8000/analyze?variety=gala" \
-     -F "file=@path/to/apple_photo.jpg"
-```
+### Test with training images (known ground truth)
 
-#### Using Granny Smith-Specific Model
+Fresh apple (day 0, should predict ~0 days):
 ```bash
 curl -X POST "http://localhost:8000/analyze?variety=smith" \
-     -F "file=@path/to/apple_photo.jpg"
+  -F "file=@data_repository/01_raw_images/second_collection_nov2024/granny_smith/fruit_1/granny_smith_fruit1_day0_000h_top_down_20241101-am.JPG"
 ```
 
-Response:
+Oxidized apple (day 6, 158h, should predict ~6.5 days):
+```bash
+curl -X POST "http://localhost:8000/analyze?variety=smith" \
+  -F "file=@data_repository/01_raw_images/second_collection_nov2024/granny_smith/fruit_1/granny_smith_fruit1_day6_158h_top_down_20241107-pm.JPG"
+```
+
+Gala with gala model (~1.5 days):
+```bash
+curl -X POST "http://localhost:8000/analyze?variety=gala" \
+  -F "file=@data_repository/01_raw_images/second_collection_nov2024/gala/fruit_1/gala_fruit1_day1_035h_top_down_20241102-pm.JPG"
+```
+
+### Batch analysis
+```bash
+curl -X POST "http://localhost:8000/batch_analyze?variety=smith" \
+  -F "file=@image1.jpg" -F "file=@image2.jpg" -F "file=@image3.jpg"
+```
+
+### Compare all models on the same photo
+```bash
+PHOTO="data_repository/01_raw_images/second_collection_nov2024/granny_smith/fruit_1/granny_smith_fruit1_day1_035h_top_down_20241102-pm.JPG"
+
+echo "Combined:" && curl -s -X POST "http://localhost:8000/analyze?variety=combined" -F "file=@$PHOTO" | python3 -m json.tool
+echo "Smith:" && curl -s -X POST "http://localhost:8000/analyze?variety=smith" -F "file=@$PHOTO" | python3 -m json.tool
+echo "Gala:" && curl -s -X POST "http://localhost:8000/analyze?variety=gala" -F "file=@$PHOTO" | python3 -m json.tool
+```
+
+## Response Format
+
+### Single analysis (`/analyze`)
 ```json
 {
   "success": true,
   "prediction": {
     "days_since_cut": 2.34,
     "confidence_interval": {
-      "lower": 1.77,
-      "upper": 2.91
+      "lower": 1.48,
+      "upper": 3.20
     },
     "interpretation": "Light oxidation - about 2 days old",
     "oxidation_level": "light"
   },
   "model_info": {
     "variety_used": "smith",
-    "validation_mae": 0.568,
-    "training_samples": 35
+    "validation_mae": 0.856,
+    "training_samples": 83
   }
 }
 ```
 
-### 3. Batch Analysis
-
-Analyze multiple photos at once:
-
-```bash
-curl -X POST "http://localhost:8000/batch_analyze?variety=smith" \
-     -F "files=@photo1.jpg" \
-     -F "files=@photo2.jpg" \
-     -F "files=@photo3.jpg"
-```
-
-Response:
+### Batch analysis (`/batch_analyze`)
 ```json
 {
   "total_files": 3,
   "successful": 3,
   "variety_used": "smith",
   "results": [
-    {
-      "filename": "photo1.jpg",
-      "days_since_cut": 1.23,
-      "success": true
-    },
-    {
-      "filename": "photo2.jpg",
-      "days_since_cut": 2.45,
-      "success": true
-    },
-    {
-      "filename": "photo3.jpg",
-      "days_since_cut": 3.67,
-      "success": true
-    }
+    { "filename": "photo1.jpg", "days_since_cut": 1.23, "success": true },
+    { "filename": "photo2.jpg", "days_since_cut": 2.45, "success": true },
+    { "filename": "photo3.jpg", "days_since_cut": 3.67, "success": true }
   ]
 }
 ```
 
-## 🎯 Model Selection Guide
-
-### When to use each model:
-
-| Apple Variety | Recommended Model | Notes |
-|--------------|-------------------|-------|
-| Gala | `variety=gala` | For red/yellow apples |
-| Granny Smith | `variety=smith` | For green apples (best tested) |
-| Unknown variety | `variety=combined` | Fallback option |
-
-**Important**: For best results, crop test images to remove backgrounds first using `manual_crop_apples.py`
-
-### Performance Comparison
-
-Testing on 8 Granny Smith photos (using cropped test images):
-
-| Strategy | MAE (days) | MAE (hours) | Performance |
-|----------|------------|-------------|-------------|
-| **Original train + Cropped test (Smith)** | **1.158** | 27.8 | ✅ **Best** |
-| Original train + Original test (Smith) | 1.470 | 35.3 | ⚠️ Baseline |
-| Original train + Cropped test (Gala) | 1.592 | 38.2 | ❌ Wrong variety |
-
-**Key Insight**: 
-- Use the correct variety model (Smith for green apples)
-- Crop test images to remove background noise
-- Achieved 21.2% improvement with optimal strategy
-
-## 🐍 Python Example
-
-```python
-import requests
-
-# Analyze a Granny Smith apple
-url = "http://localhost:8000/analyze"
-params = {"variety": "smith"}
-files = {"file": open("granny_smith_photo.jpg", "rb")}
-
-response = requests.post(url, params=params, files=files)
-result = response.json()
-
-print(f"Days since cut: {result['prediction']['days_since_cut']}")
-print(f"Confidence: {result['prediction']['confidence_interval']}")
-print(f"Model used: {result['model_info']['variety_used']}")
-```
-
-## 🌐 JavaScript Example
-
-```javascript
-async function analyzeApple(imageFile, variety = 'combined') {
-  const formData = new FormData();
-  formData.append('file', imageFile);
-  
-  const response = await fetch(
-    `http://localhost:8000/analyze?variety=${variety}`,
-    {
-      method: 'POST',
-      body: formData
-    }
-  );
-  
-  const result = await response.json();
-  
-  console.log(`Days since cut: ${result.prediction.days_since_cut}`);
-  console.log(`Model used: ${result.model_info.variety_used}`);
-  
-  return result;
-}
-
-// Usage
-const fileInput = document.getElementById('apple-photo');
-analyzeApple(fileInput.files[0], 'smith');
-```
-
-## 🧪 Testing Your API
-
-### Test with existing validation photos:
-
-```bash
-# Day 1 Granny Smith (should predict ~1 day)
-curl -X POST "http://localhost:8000/analyze?variety=smith" \
-     -F "file=@data_repository/compare_images/smith1-day1.jpg"
-
-# Day 4 Granny Smith (should predict ~1.5-2 days)
-curl -X POST "http://localhost:8000/analyze?variety=smith" \
-     -F "file=@data_repository/compare_images/smith1-day4.jpg"
-```
-
-### Compare all three models:
-
-```bash
-# Test same photo with all models
-PHOTO="data_repository/compare_images/smith1-day1.jpg"
-
-echo "Combined model:"
-curl -X POST "http://localhost:8000/analyze?variety=combined" -F "file=@$PHOTO" | jq '.prediction.days_since_cut'
-
-echo "Gala model:"
-curl -X POST "http://localhost:8000/analyze?variety=gala" -F "file=@$PHOTO" | jq '.prediction.days_since_cut'
-
-echo "Smith model:"
-curl -X POST "http://localhost:8000/analyze?variety=smith" -F "file=@$PHOTO" | jq '.prediction.days_since_cut'
-```
-
-## 📊 Interpreting Results
-
-### Oxidation Levels
+## Oxidation Level Interpretations
 
 | Days | Interpretation | Oxidation Level |
 |------|---------------|-----------------|
@@ -233,80 +160,75 @@ curl -X POST "http://localhost:8000/analyze?variety=smith" -F "file=@$PHOTO" | j
 | 3.5 - 4.5 | Significant oxidation | medium-heavy |
 | > 4.5 | Heavy oxidation | heavy |
 
-### Confidence Intervals
+## Code Examples
 
-The API returns confidence intervals based on validation MAE:
-- **Smith model**: ±0.57 days
-- **Gala model**: ±0.75 days
-- **Combined model**: ±1.40 days
+### Python
+```python
+import requests
 
-Example:
-```json
-{
-  "days_since_cut": 2.34,
-  "confidence_interval": {
-    "lower": 1.77,  // 2.34 - 0.57
-    "upper": 2.91   // 2.34 + 0.57
-  }
+url = "http://localhost:8000/analyze"
+params = {"variety": "smith"}
+files = {"file": open("granny_smith_photo.jpg", "rb")}
+
+response = requests.post(url, params=params, files=files)
+result = response.json()
+
+print(f"Days since cut: {result['prediction']['days_since_cut']}")
+print(f"Confidence: {result['prediction']['confidence_interval']}")
+```
+
+### JavaScript (used by the frontend)
+```javascript
+async function analyzeApple(imageFile, variety = 'combined') {
+  const formData = new FormData();
+  formData.append('file', imageFile);
+
+  const response = await fetch(
+    `http://localhost:8000/analyze?variety=${variety}`,
+    { method: 'POST', body: formData }
+  );
+
+  return await response.json();
 }
 ```
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
-### API won't start
+### "no_models_loaded" on health check
+The API can't find the `.h5` files. This was fixed by using `BASE_DIR = Path(__file__).resolve().parent`
+so paths resolve relative to the script. If models are missing entirely:
 ```bash
-# Check if models exist
+# Check they exist
 ls -lh backend/*.h5
 
-# Should see:
-# apple_oxidation_days_model_combined.h5
-# apple_oxidation_days_model_gala.h5
-# apple_oxidation_days_model_smith.h5
-```
-
-If models missing, train them:
-```bash
+# If missing, restore from archive or retrain
+tar -xzvf models_archive.tar.gz -C backend/
+# or
 python train_regression_model.py
 ```
 
-### Wrong predictions
-1. **Check variety parameter**: Using Gala model on Granny Smith = 36% worse!
-2. **Check image quality**: Blurry or poorly lit photos reduce accuracy
-3. **Check apple age**: Models trained on 0-5 days, extrapolation may fail
-4. **Check variety**: Models optimized for Gala and Granny Smith only
+### TensorFlow version errors
+The models were saved with **Keras 3** (TF 2.16+). Do NOT set `TF_USE_LEGACY_KERAS=1`
+or install `tf-keras` — that forces Keras 2 which can't load these models. Just use
+standard TensorFlow 2.16+.
 
-### Model not found error
-```json
-{
-  "detail": "Model 'gala' not loaded. Available models: ['combined', 'smith']"
-}
+### Wrong predictions
+1. **Check variety parameter** — using the wrong variety model hurts accuracy by 30%+
+2. **Crop test images** — removing phone backgrounds improves accuracy (21.2% improvement)
+3. **Models trained on 0-6.5 days** — predictions outside this range may be unreliable
+
+## Docker Deployment
+
+```bash
+cd backend
+docker build -t apple-oxidation-api .
+docker run -p 8080:8080 apple-oxidation-api
 ```
 
-Solution: Check which models loaded at startup. May need to retrain missing model.
+The Dockerfile uses `PORT` env var (defaults to 8080) for Google Cloud Run compatibility.
 
-## 🎓 Best Practices
+## Further Reading
 
-1. **Always specify variety when known**
-   - Don't rely on combined model if you know the variety
-   - 27-36% improvement with correct variety model
-
-2. **Use batch endpoint for multiple photos**
-   - More efficient than individual requests
-   - Maintains consistency with same model
-
-3. **Consider confidence intervals**
-   - Smith model most precise (±0.57 days)
-   - Combined model least precise (±1.40 days)
-
-4. **Validate on your own data**
-   - Test with known samples first
-   - Our validation shows Day 1 is excellent, Days 2-4 need work
-
-## 📚 Further Reading
-
-- `MODEL_RESULTS.md` - Detailed performance analysis and findings
-- `/docs` endpoint - Interactive API documentation
-
----
-
-**Questions?** Check the Science Fair 2026 documentation or run `python test_both_varieties.py` to see expected performance.
+- [MODEL_RESULTS.md](MODEL_RESULTS.md) — Detailed performance analysis & scientific findings
+- [CLOUD_RUN_DEPLOYMENT.md](CLOUD_RUN_DEPLOYMENT.md) — Google Cloud deployment guide
+- http://localhost:8000/docs — Interactive Swagger UI (when server is running)

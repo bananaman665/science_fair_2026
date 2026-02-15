@@ -27,9 +27,7 @@ origins = [
     "ionic://localhost",                  # iOS alternative
     "http://localhost",                   # Android Capacitor app
     "com.sciencefair.appleoxidation://localhost",  # iOS custom scheme
-    # Add your production frontend URLs here when deploying:
-    # "https://your-app.vercel.app",
-    # "https://your-app.netlify.app",
+    "https://apple-oxidation-api-213429152907.us-central1.run.app",  # Cloud Run
 ]
 
 app.add_middleware(
@@ -40,19 +38,22 @@ app.add_middleware(
     allow_headers=["*"],                  # Allow all headers
 )
 
+# Resolve paths relative to this script so it works from any working directory
+BASE_DIR = Path(__file__).resolve().parent
+
 # Model paths for different varieties (4 models total)
 MODEL_PATHS = {
-    'combined': Path("apple_oxidation_days_model_combined.h5"),
-    'gala': Path("apple_oxidation_days_model_gala.h5"),
-    'smith': Path("apple_oxidation_days_model_smith.h5"),
-    'red_delicious': Path("apple_oxidation_days_model_red_delicious.h5")
+    'combined': BASE_DIR / "apple_oxidation_days_model_combined.h5",
+    'gala': BASE_DIR / "apple_oxidation_days_model_gala.h5",
+    'smith': BASE_DIR / "apple_oxidation_days_model_smith.h5",
+    'red_delicious': BASE_DIR / "apple_oxidation_days_model_red_delicious.h5"
 }
 
 METADATA_PATHS = {
-    'combined': Path("model_metadata_regression_combined.json"),
-    'gala': Path("model_metadata_regression_gala.json"),
-    'smith': Path("model_metadata_regression_smith.json"),
-    'red_delicious': Path("model_metadata_regression_red_delicious.json")
+    'combined': BASE_DIR / "model_metadata_regression_combined.json",
+    'gala': BASE_DIR / "model_metadata_regression_gala.json",
+    'smith': BASE_DIR / "model_metadata_regression_smith.json",
+    'red_delicious': BASE_DIR / "model_metadata_regression_red_delicious.json"
 }
 
 # Store loaded models
