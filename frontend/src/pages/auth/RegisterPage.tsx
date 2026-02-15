@@ -69,6 +69,17 @@ export const RegisterPage: React.FC = () => {
               <span>Sign up with Apple</span>
             </button>
           </div>
+
+          {/* Sign In Link */}
+          <p className="text-center text-gray-600 mt-6">
+            Already have an account?{' '}
+            <button
+              onClick={() => navigate('/login')}
+              className="text-blue-500 font-semibold hover:underline"
+            >
+              Sign in!
+            </button>
+          </p>
         </div>
       </div>
     </div>

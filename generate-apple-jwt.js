@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 
 // Fill in these from Apple Developer Center
 const TEAM_ID = '3C2UHTV9QT';
-const KEY_ID = 'WYZ54N72VU';
+const KEY_ID = 'QG4929VZBH';
 const CLIENT_ID = 'com.sciencefair.appleoxidation.service';
 
 // Read your p8 file

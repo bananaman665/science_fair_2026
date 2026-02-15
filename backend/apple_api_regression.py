@@ -26,6 +26,7 @@ origins = [
     "capacitor://localhost",              # iOS Capacitor app
     "ionic://localhost",                  # iOS alternative
     "http://localhost",                   # Android Capacitor app
+    "com.sciencefair.appleoxidation://localhost",  # iOS custom scheme
     # Add your production frontend URLs here when deploying:
     # "https://your-app.vercel.app",
     # "https://your-app.netlify.app",

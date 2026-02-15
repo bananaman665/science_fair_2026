@@ -37,9 +37,7 @@ class AuthService {
    * Sign in with OAuth provider (Google or Apple)
    */
   async signInWithProvider(provider: AuthProvider) {
-    // Use custom URL scheme for native iOS app (Capacitor)
-    // Falls back to web URL for browser testing
-    const isNative = window.location.protocol === 'capacitor:';
+    const isNative = !!(window as any).Capacitor;
     const redirectTo = isNative
       ? 'com.sciencefair.appleoxidation://auth/callback'
       : `${window.location.origin}/auth/callback`;
@@ -52,8 +50,6 @@ class AuthService {
     });
 
     if (error) throw error;
-
-    // Note: localStorage clearing happens in callback handler after OAuth redirect
     return data;
   }
 

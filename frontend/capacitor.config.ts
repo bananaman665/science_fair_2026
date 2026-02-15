@@ -6,6 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     androidScheme: 'https',
+    iosScheme: 'com.sciencefair.appleoxidation',
     // For development with live reload:
     // url: 'http://192.168.1.X:5173',
     // cleartext: true

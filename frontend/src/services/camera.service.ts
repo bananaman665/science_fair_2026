@@ -6,7 +6,7 @@ export class CameraService {
     return await Camera.getPhoto({
       quality: 90,
       allowEditing: false,
-      resultType: CameraResultType.Uri,
+      resultType: CameraResultType.Base64,
       source: CameraSource.Camera,
     });
   }
@@ -16,7 +16,7 @@ export class CameraService {
     return await Camera.getPhoto({
       quality: 90,
       allowEditing: false,
-      resultType: CameraResultType.Uri,
+      resultType: CameraResultType.Base64,
       source: CameraSource.Photos,
     });
   }

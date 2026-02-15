@@ -69,6 +69,17 @@ export const LoginPage: React.FC = () => {
               <span>Sign in with Apple</span>
             </button>
           </div>
+
+          {/* Sign Up Link */}
+          <p className="text-center text-gray-600 mt-6">
+            No Account?{' '}
+            <button
+              onClick={() => navigate('/register')}
+              className="text-blue-500 font-semibold hover:underline"
+            >
+              Sign up!
+            </button>
+          </p>
         </div>
       </div>
     </div>

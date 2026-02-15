@@ -8,7 +8,7 @@ import { useHistoryStore } from '../store/historyStore';
 import { Button } from '../components/common/Button';
 import { Loading } from '../components/common/Loading';
 import { VarietySelector } from '../components/scan/VarietySelector';
-import { OxidationDisplay } from '../components/scan/OxidationDisplay';
+import { OxidationMeter } from '../components/scan/OxidationMeter';
 import { QuickStatsCard } from '../components/scan/QuickStatsCard';
 import { PhotoConfirmationModal } from '../components/modals/PhotoConfirmationModal';
 
@@ -64,11 +64,13 @@ export const ScanPage: React.FC = () => {
   };
 
   const handleConfirmPhoto = async () => {
+    console.log('✅ User confirmed photo');
     if (pendingPhoto) {
+      console.log('📸 Setting image and analyzing...', pendingPhoto);
       setShowConfirmation(false);
       setImage(pendingPhoto);
-      await analyzeCapturedImage(pendingPhoto);
       setPendingPhoto(null);
+      await analyzeCapturedImage(pendingPhoto);
     }
   };
 
@@ -79,23 +81,32 @@ export const ScanPage: React.FC = () => {
 
   const analyzeCapturedImage = async (imageUri: string) => {
     setIsScanning(true);
-    const result = await analyzeImage(imageUri, selectedVariety);
+    try {
+      const result = await analyzeImage(imageUri, selectedVariety);
 
-    if (result) {
-      setScanResult(result);
+      if (result) {
+        setScanResult(result);
 
-      // Add to history
-      addToHistory({
-        id: generateUUID(),
-        imageUri,
-        variety: result.model_info.variety_used,
-        days_since_cut: result.prediction.days_since_cut,
-        oxidation_level: result.prediction.oxidation_level,
-        confidence_lower: result.prediction.confidence_interval.lower,
-        confidence_upper: result.prediction.confidence_interval.upper,
-        interpretation: result.prediction.interpretation,
-        timestamp: new Date().toISOString(),
-      });
+        // Add to history
+        try {
+          await addToHistory({
+            id: generateUUID(),
+            imageUri,
+            variety: result.model_info.variety_used,
+            days_since_cut: result.prediction.days_since_cut,
+            oxidation_level: result.prediction.oxidation_level,
+            confidence_lower: result.prediction.confidence_interval.lower,
+            confidence_upper: result.prediction.confidence_interval.upper,
+            interpretation: result.prediction.interpretation,
+            timestamp: new Date().toISOString(),
+          });
+          console.log('✅ Scan saved to history');
+        } catch (historyError) {
+          console.error('❌ Error saving to history:', historyError);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error analyzing image:', error);
     }
 
     setIsScanning(false);
@@ -108,7 +119,7 @@ export const ScanPage: React.FC = () => {
   // Show results view
   if (currentImage && scanResult) {
     return (
-      <div className="h-full bg-gray-50 p-4 pt-8">
+      <div className="h-full bg-gray-50 p-4 pt-8 pb-24">
         <div className="max-w-2xl mx-auto space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-900">Scan Results</h2>
@@ -123,10 +134,11 @@ export const ScanPage: React.FC = () => {
             className="w-full h-64 object-cover rounded-lg"
           />
 
-          <OxidationDisplay
-            level={scanResult.prediction.oxidation_level}
+          <OxidationMeter
             days={scanResult.prediction.days_since_cut}
-            interpretation={scanResult.prediction.interpretation}
+            level={scanResult.prediction.oxidation_level}
+            confidence_lower={scanResult.prediction.confidence_interval.lower}
+            confidence_upper={scanResult.prediction.confidence_interval.upper}
           />
 
           <div className="bg-white p-4 rounded-lg space-y-2">
@@ -152,7 +164,7 @@ export const ScanPage: React.FC = () => {
 
   // Show capture view
   return (
-    <div className="h-full bg-gray-50 p-4 pt-8">
+    <div className="h-full bg-gray-50 p-4 pt-8 pb-24">
       <div className="max-w-2xl mx-auto space-y-6">
         <h1 className="text-3xl font-bold text-center text-gray-900">Scan Apple</h1>
 
@@ -190,7 +202,7 @@ export const ScanPage: React.FC = () => {
           mostScannedVariety={stats.mostScannedVariety}
         />
 
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4">
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4 mb-8">
           <div className="flex gap-3 items-start">
             <Lightbulb size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
             <div>

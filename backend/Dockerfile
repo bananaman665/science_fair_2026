@@ -2,18 +2,21 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install dependencies
+# Install system dependencies
+RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code and models
+# Copy models and code
+COPY *.h5 ./
+COPY *.json ./
 COPY apple_api_regression.py .
-COPY *.h5 .
-COPY model_metadata_regression_*.json .
 
-# Cloud Run uses PORT env variable (default 8080)
+# Cloud Run uses PORT env variable
 ENV PORT=8080
 EXPOSE 8080
 
-# Start server
-CMD ["sh", "-c", "uvicorn apple_api_regression:app --host 0.0.0.0 --port ${PORT}"]
+# Run with uvicorn
+CMD uvicorn apple_api_regression:app --host 0.0.0.0 --port ${PORT}

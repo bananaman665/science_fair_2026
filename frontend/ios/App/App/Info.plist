@@ -53,5 +53,42 @@
 	<string>We need permission to save analyzed apple photos to your library.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>We need permission to save analyzed apple photos to your library.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.sciencefair.appleoxidation</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.sciencefair.appleoxidation</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSLocalNetworkUsageDescription</key>
+		<string>This app connects to your local development server for apple analysis.</string>
+		<key>NSBonjourServices</key>
+		<array>
+			<string>_http._tcp</string>
+		</array>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>10.200.1.147</key>
+			<dict>
+				<key>NSIncludesSubdomains</key>
+				<false/>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSIncludesSubdomains</key>
+				<false/>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 </dict>
 </plist>

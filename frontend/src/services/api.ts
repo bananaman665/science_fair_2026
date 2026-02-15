@@ -11,9 +11,7 @@ class ApiService {
     this.client = axios.create({
       baseURL: BASE_URL,
       timeout: 30000, // 30 seconds for image upload
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      // Don't set Content-Type for multipart - let axios auto-detect
     });
 
     // Add auth token to requests
