@@ -1,8 +1,7 @@
-import { User, Session } from '@supabase/supabase-js';
+import { User } from 'firebase/auth';
 
 export interface AuthState {
   user: User | null;
-  session: Session | null;
   loading: boolean;
   initialized: boolean;
 }

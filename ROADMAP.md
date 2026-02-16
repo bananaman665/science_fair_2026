@@ -51,18 +51,17 @@ Firebase console > Authentication > Sign-in method:
 - [x] Web app registered (name: `apple-oxidation-web`)
 - [x] Firebase config object saved (see below)
 
-**Firebase Config (public/safe to commit):**
+**Firebase Config:**
 
-```javascript
-const firebaseConfig = {
-  apiKey: "AIzaSyBXB_2D1LErMx5kBn028U9g_EKG6pqJsoI",
-  authDomain: "science-fair-2026.firebaseapp.com",
-  projectId: "science-fair-2026",
-  storageBucket: "science-fair-2026.firebasestorage.app",
-  messagingSenderId: "213429152907",
-  appId: "1:213429152907:web:a03343f9dc7f31d35b788e"
-};
-```
+Configuration is stored in `frontend/.env`:
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN` = science-fair-2026.firebaseapp.com
+- `VITE_FIREBASE_PROJECT_ID` = science-fair-2026
+- `VITE_FIREBASE_STORAGE_BUCKET` = science-fair-2026.firebasestorage.app
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
+
+**Note:** Firebase client config is public and safe to expose. Security is enforced via Firestore rules and Firebase Auth.
 
 #### 3e. Add frontend team as collaborators
 

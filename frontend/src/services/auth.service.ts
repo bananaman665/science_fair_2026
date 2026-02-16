@@ -1,36 +1,47 @@
-import { supabase } from '../lib/supabase';
+import { auth } from '../lib/firebase';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  OAuthProvider,
+  User,
+} from 'firebase/auth';
 import { SignUpCredentials, SignInCredentials, AuthProvider } from '../types/auth.types';
 import { storageService } from './storage.service';
 
 class AuthService {
+  private googleProvider: GoogleAuthProvider;
+  private appleProvider: OAuthProvider;
+
+  constructor() {
+    // Initialize OAuth providers
+    this.googleProvider = new GoogleAuthProvider();
+    this.appleProvider = new OAuthProvider('apple.com');
+  }
+
   /**
    * Sign up with email and password
    */
   async signUp({ email, password }: SignUpCredentials) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-    return data;
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    return { user: userCredential.user };
   }
 
   /**
    * Sign in with email and password
    */
   async signIn({ email, password }: SignInCredentials) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) throw error;
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
     // Clear localStorage on successful login
     this.clearLocalData();
 
-    return data;
+    return { user: userCredential.user };
   }
 
   /**
@@ -38,48 +49,41 @@ class AuthService {
    */
   async signInWithProvider(provider: AuthProvider) {
     const isNative = !!(window as any).Capacitor;
-    const redirectTo = isNative
-      ? 'com.sciencefair.appleoxidation://auth/callback'
-      : `${window.location.origin}/auth/callback`;
+    const oauthProvider = provider === 'google' ? this.googleProvider : this.appleProvider;
 
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo,
-      },
-    });
+    if (isNative) {
+      // Use redirect for native apps (Capacitor)
+      await signInWithRedirect(auth, oauthProvider);
+    } else {
+      // Use popup for web
+      const result = await signInWithPopup(auth, oauthProvider);
+      return { user: result.user };
+    }
+  }
 
-    if (error) throw error;
-    return data;
+  /**
+   * Check for redirect result (for native OAuth)
+   */
+  async checkRedirectResult() {
+    const result = await getRedirectResult(auth);
+    return result;
   }
 
   /**
    * Sign out
    */
   async signOut() {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    await firebaseSignOut(auth);
 
     // Clear all local data
     this.clearLocalData();
   }
 
   /**
-   * Get current session
-   */
-  async getSession() {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    return data.session;
-  }
-
-  /**
    * Get current user
    */
-  async getUser() {
-    const { data, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    return data.user;
+  getUser(): User | null {
+    return auth.currentUser;
   }
 
   /**
@@ -93,8 +97,8 @@ class AuthService {
   /**
    * Listen to auth state changes
    */
-  onAuthStateChange(callback: (event: string, session: any) => void) {
-    return supabase.auth.onAuthStateChange(callback);
+  onAuthStateChange(callback: (user: User | null) => void) {
+    return onAuthStateChanged(auth, callback);
   }
 }
 

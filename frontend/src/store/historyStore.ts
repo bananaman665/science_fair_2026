@@ -1,6 +1,18 @@
 import { create } from 'zustand';
 import { ScanHistoryItem } from '../types/scan.types';
-import { supabase } from '../lib/supabase';
+import { auth, db } from '../lib/firebase';
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  Timestamp,
+} from 'firebase/firestore';
 
 interface HistoryState {
   history: ScanHistoryItem[];
@@ -21,31 +33,37 @@ export const useHistoryStore = create<HistoryState>((set) => ({
   loadHistory: async () => {
     set({ loading: true, error: null });
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = auth.currentUser;
       if (!user) {
         set({ history: [], loading: false });
         return;
       }
 
-      const { data, error } = await supabase
-        .from('user_scans')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Query Firestore for user scans
+      const scansRef = collection(db, 'user_scans');
+      const q = query(
+        scansRef,
+        where('user_id', '==', user.uid),
+        orderBy('created_at', 'desc')
+      );
 
-      if (error) throw error;
+      const querySnapshot = await getDocs(q);
 
-      // Transform Supabase data to ScanHistoryItem format
-      const history: ScanHistoryItem[] = (data || []).map((item) => ({
-        id: item.id,
-        imageUri: item.image_uri,
-        variety: item.variety,
-        days_since_cut: item.days_since_cut,
-        oxidation_level: item.oxidation_level,
-        confidence_lower: item.confidence_lower,
-        confidence_upper: item.confidence_upper,
-        interpretation: item.interpretation,
-        timestamp: item.created_at,
-      }));
+      // Transform Firestore data to ScanHistoryItem format
+      const history: ScanHistoryItem[] = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          imageUri: data.image_uri,
+          variety: data.variety,
+          days_since_cut: data.days_since_cut,
+          oxidation_level: data.oxidation_level,
+          confidence_lower: data.confidence_lower,
+          confidence_upper: data.confidence_upper,
+          interpretation: data.interpretation,
+          timestamp: data.created_at?.toDate?.()?.toISOString() || new Date().toISOString(),
+        };
+      });
 
       set({ history, loading: false });
     } catch (error: any) {
@@ -56,12 +74,13 @@ export const useHistoryStore = create<HistoryState>((set) => ({
 
   addToHistory: async (item) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = auth.currentUser;
       if (!user) throw new Error('User not authenticated');
 
-      const { error } = await supabase.from('user_scans').insert({
-        id: item.id,
-        user_id: user.id,
+      // Add to Firestore
+      const scansRef = collection(db, 'user_scans');
+      await addDoc(scansRef, {
+        user_id: user.uid,
         image_uri: item.imageUri,
         variety: item.variety,
         days_since_cut: item.days_since_cut,
@@ -69,9 +88,8 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         confidence_lower: item.confidence_lower,
         confidence_upper: item.confidence_upper,
         interpretation: item.interpretation,
+        created_at: serverTimestamp(),
       });
-
-      if (error) throw error;
 
       // Add to local state
       set((state) => ({ history: [item, ...state.history] }));
@@ -83,12 +101,9 @@ export const useHistoryStore = create<HistoryState>((set) => ({
 
   deleteFromHistory: async (id) => {
     try {
-      const { error } = await supabase
-        .from('user_scans')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      // Delete from Firestore
+      const docRef = doc(db, 'user_scans', id);
+      await deleteDoc(docRef);
 
       // Remove from local state
       set((state) => ({
@@ -102,15 +117,19 @@ export const useHistoryStore = create<HistoryState>((set) => ({
 
   clearHistory: async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = auth.currentUser;
       if (!user) return;
 
-      const { error } = await supabase
-        .from('user_scans')
-        .delete()
-        .eq('user_id', user.id);
+      // Query all user scans
+      const scansRef = collection(db, 'user_scans');
+      const q = query(scansRef, where('user_id', '==', user.uid));
+      const querySnapshot = await getDocs(q);
 
-      if (error) throw error;
+      // Delete all documents
+      const deletePromises = querySnapshot.docs.map((document) =>
+        deleteDoc(doc(db, 'user_scans', document.id))
+      );
+      await Promise.all(deletePromises);
 
       set({ history: [] });
     } catch (error: any) {
