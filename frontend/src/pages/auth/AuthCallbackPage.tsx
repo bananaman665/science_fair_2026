@@ -5,15 +5,17 @@ import { Loading } from '../../components/common/Loading';
 
 export const AuthCallbackPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, initialized } = useAuthStore();
 
   useEffect(() => {
-    // Supabase handles the OAuth callback automatically
-    // Once the session is set, redirect to scan page
+    if (!initialized) return;
+
     if (user) {
       navigate('/scan', { replace: true });
+    } else {
+      navigate('/login', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, initialized, navigate]);
 
   return (
     <div className="h-screen flex items-center justify-center bg-gradient-to-br from-primary to-green-700">

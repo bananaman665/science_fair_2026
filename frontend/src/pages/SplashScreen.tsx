@@ -16,7 +16,7 @@ export const SplashScreen: React.FC = () => {
       } else {
         navigate('/login', { replace: true });
       }
-    }, 2000);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [user, initialized, navigate]);

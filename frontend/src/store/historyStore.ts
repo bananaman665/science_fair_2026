@@ -75,11 +75,16 @@ export const useHistoryStore = create<HistoryState>((set) => ({
   addToHistory: async (item) => {
     try {
       const user = auth.currentUser;
-      if (!user) throw new Error('User not authenticated');
+      if (!user) {
+        console.error('❌ Cannot save: User not authenticated');
+        throw new Error('User not authenticated');
+      }
 
-      // Add to Firestore
+      console.log('💾 Saving scan to Firestore...', { variety: item.variety, days: item.days_since_cut });
+
+      // Add to Firestore and capture the document reference
       const scansRef = collection(db, 'user_scans');
-      await addDoc(scansRef, {
+      const docRef = await addDoc(scansRef, {
         user_id: user.uid,
         image_uri: item.imageUri,
         variety: item.variety,
@@ -91,11 +96,20 @@ export const useHistoryStore = create<HistoryState>((set) => ({
         created_at: serverTimestamp(),
       });
 
-      // Add to local state
-      set((state) => ({ history: [item, ...state.history] }));
+      console.log('✅ Saved to Firestore with ID:', docRef.id);
+
+      // Add to local state with the Firestore document ID
+      const savedItem: ScanHistoryItem = {
+        ...item,
+        id: docRef.id, // Use Firestore's ID, not the app-generated one
+      };
+
+      set((state) => ({ history: [savedItem, ...state.history] }));
+      console.log('✅ Added to local state');
     } catch (error: any) {
-      console.error('Error adding to history:', error);
+      console.error('❌ Error adding to history:', error);
       set({ error: error.message });
+      throw error; // Re-throw so the ScanPage knows it failed
     }
   },
 

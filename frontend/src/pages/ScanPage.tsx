@@ -23,7 +23,7 @@ const generateUUID = () => {
 
 export const ScanPage: React.FC = () => {
   const { capturePhoto, selectPhoto } = useCamera();
-  const { analyzeImage, loading } = useAPI();
+  const { analyzeImage, loading, error: apiError } = useAPI();
   const { addToHistory, loadHistory } = useHistoryStore();
   const stats = useQuickStats();
 
@@ -103,10 +103,17 @@ export const ScanPage: React.FC = () => {
           console.log('✅ Scan saved to history');
         } catch (historyError) {
           console.error('❌ Error saving to history:', historyError);
+          alert(`Failed to save scan to history: ${historyError}`);
         }
+      } else {
+        // API call failed - useAPI hook sets error state
+        const errorMsg = apiError || 'Unknown error occurred during analysis';
+        console.error('❌ API returned null result. Error:', errorMsg);
+        alert(`Analysis failed: ${errorMsg}`);
       }
     } catch (error) {
       console.error('❌ Error analyzing image:', error);
+      alert(`Error: ${error}`);
     }
 
     setIsScanning(false);

@@ -11,6 +11,7 @@ import {
   OAuthProvider,
   User,
 } from 'firebase/auth';
+import { Capacitor } from '@capacitor/core';
 import { SignUpCredentials, SignInCredentials, AuthProvider } from '../types/auth.types';
 import { storageService } from './storage.service';
 
@@ -46,16 +47,15 @@ class AuthService {
 
   /**
    * Sign in with OAuth provider (Google or Apple)
+   * Uses popup for web, redirect for native (Capacitor)
    */
   async signInWithProvider(provider: AuthProvider) {
-    const isNative = !!(window as any).Capacitor;
+    const isNative = Capacitor.isNativePlatform();
     const oauthProvider = provider === 'google' ? this.googleProvider : this.appleProvider;
 
     if (isNative) {
-      // Use redirect for native apps (Capacitor)
       await signInWithRedirect(auth, oauthProvider);
     } else {
-      // Use popup for web
       const result = await signInWithPopup(auth, oauthProvider);
       return { user: result.user };
     }
