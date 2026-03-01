@@ -95,7 +95,18 @@ def auto_crop_apple(image):
     regions that differ from it. Works with any background color.
     Returns (cropped_image, was_cropped) tuple.
     """
-    img_array = np.array(image, dtype=np.float32)
+    orig_w, orig_h = image.size
+
+    # Downscale for analysis to save memory (full-res images can be 5000x3000+)
+    max_analysis_dim = 512
+    if max(orig_w, orig_h) > max_analysis_dim:
+        scale = max_analysis_dim / max(orig_w, orig_h)
+        analysis_img = image.resize((int(orig_w * scale), int(orig_h * scale)))
+    else:
+        scale = 1.0
+        analysis_img = image
+
+    img_array = np.array(analysis_img, dtype=np.float32)
     h, w = img_array.shape[:2]
 
     # Sample border pixels (top/bottom 5% of rows, left/right 5% of cols)
@@ -141,6 +152,12 @@ def auto_crop_apple(image):
     total_area = h * w
     if crop_area >= total_area * 0.85:
         return image, False
+
+    # Scale coordinates back to original image dimensions
+    min_col = int(min_col / scale)
+    min_row = int(min_row / scale)
+    max_col = int(max_col / scale)
+    max_row = int(max_row / scale)
 
     cropped = image.crop((min_col, min_row, max_col, max_row))
     return cropped, True
