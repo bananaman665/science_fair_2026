@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Settings, X, BookOpen, Lightbulb, BarChart3, Trash2, Info, Trophy, LogOut } from 'lucide-react';
+import { Settings, X, BookOpen, Lightbulb, BarChart3, Trash2, Info, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { HowToUseModal } from '../modals/HowToUseModal';
 import { TipsModal } from '../modals/TipsModal';
 import { AboutModal } from '../modals/AboutModal';
 import { ScienceFairModal } from '../modals/ScienceFairModal';
-import { useAuthStore } from '../../store/authStore';
 import { useHistoryStore } from '../../store/historyStore';
 
 export const SettingsMenu: React.FC = () => {
@@ -16,7 +15,6 @@ export const SettingsMenu: React.FC = () => {
   const [showScienceFair, setShowScienceFair] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { signOut } = useAuthStore();
   const { clearHistory } = useHistoryStore();
 
   // Close menu when clicking outside
@@ -105,20 +103,6 @@ export const SettingsMenu: React.FC = () => {
             >
               <Trash2 size={18} className="text-red-600" />
               <span>Clear Scan History</span>
-            </button>
-
-            <div className="border-t border-gray-200 my-2"></div>
-
-            <button
-              onClick={async () => {
-                await signOut();
-                setIsOpen(false);
-                navigate('/login', { replace: true });
-              }}
-              className="w-full px-3 py-2 hover:bg-red-50 rounded text-sm text-left text-red-600 flex items-center gap-3"
-            >
-              <LogOut size={18} className="text-red-600" />
-              <span>Logout</span>
             </button>
 
             <div className="border-t border-gray-200 my-2"></div>

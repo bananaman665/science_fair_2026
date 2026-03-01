@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import tensorflow as tf
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 import io
 import json
 from pathlib import Path
@@ -23,6 +23,7 @@ origins = [
     "http://localhost:5173",              # Vite dev server
     "http://localhost:4173",              # Vite preview
     "http://127.0.0.1:5173",              # Alternative localhost
+    "http://10.200.1.147:5173",           # LAN Vite dev server (phone testing)
     "capacitor://localhost",              # iOS Capacitor app
     "ionic://localhost",                  # iOS alternative
     "http://localhost",                   # Android Capacitor app
@@ -60,14 +61,27 @@ METADATA_PATHS = {
 models = {}
 metadata_store = {}
 
+def _patch_keras_for_new_models():
+    """Patch Keras layers to accept quantization_config from newer Keras versions."""
+    import keras
+    for layer_cls in [keras.layers.Dense, keras.layers.Conv2D]:
+        original_init = layer_cls.__init__
+        def make_patched(orig):
+            def patched(self, *args, quantization_config=None, **kwargs):
+                return orig(self, *args, **kwargs)
+            return patched
+        layer_cls.__init__ = make_patched(original_init)
+
+_patch_keras_for_new_models()
+
 @app.on_event("startup")
 async def load_models():
     """Load all available models on startup"""
     global models, metadata_store
-    
+
     print("\n🍎 Loading Apple Oxidation Models...")
     print("=" * 50)
-    
+
     for variety, model_path in MODEL_PATHS.items():
         if model_path.exists():
             try:
@@ -163,7 +177,48 @@ def auto_crop_apple(image):
     return cropped, True
 
 
-def preprocess_image(image_bytes, crop=True):
+def normalize_image(image):
+    """
+    Normalize image to reduce domain shift between phone photos and training images.
+    - Applies CLAHE-style equalization on luminance to standardize brightness/contrast
+    - Applies white balance correction to neutralize color casts
+    Returns normalized PIL Image.
+    """
+    img_array = np.array(image, dtype=np.float32)
+
+    # 1. White balance: scale each channel so the 95th percentile becomes ~240
+    #    This corrects warm/cool color casts from different lighting
+    for c in range(3):
+        channel = img_array[:, :, c]
+        p95 = np.percentile(channel, 95)
+        if p95 > 0:
+            scale = 240.0 / p95
+            img_array[:, :, c] = np.clip(channel * scale, 0, 255)
+
+    # 2. Histogram equalization on luminance (preserve color, fix brightness/contrast)
+    #    Convert to LAB-like: extract luminance, equalize, recombine
+    image_wb = Image.fromarray(img_array.astype(np.uint8))
+    image_gray = image_wb.convert('L')
+    equalized_gray = ImageOps.equalize(image_gray)
+
+    # Blend: use equalized luminance but keep original colors
+    # Scale each pixel's RGB by (equalized_lum / original_lum)
+    orig_lum = np.array(image_gray, dtype=np.float32) + 1  # avoid /0
+    eq_lum = np.array(equalized_gray, dtype=np.float32) + 1
+    lum_ratio = eq_lum / orig_lum
+
+    # Apply gently - 40% equalization to avoid destroying color info
+    blend = 0.4
+    gentle_ratio = 1.0 + blend * (lum_ratio - 1.0)
+
+    result = np.array(image_wb, dtype=np.float32)
+    for c in range(3):
+        result[:, :, c] = np.clip(result[:, :, c] * gentle_ratio, 0, 255)
+
+    return Image.fromarray(result.astype(np.uint8))
+
+
+def preprocess_image(image_bytes, crop=True, normalize=True):
     """Preprocess uploaded image for prediction"""
     try:
         # Open image
@@ -175,14 +230,20 @@ def preprocess_image(image_bytes, crop=True):
         if crop:
             image, was_cropped = auto_crop_apple(image)
 
+        # Normalize to reduce domain shift (phone vs training images)
+        was_normalized = False
+        if normalize:
+            image = normalize_image(image)
+            was_normalized = True
+
         # Resize to model input size
         image = image.resize((224, 224))
 
-        # Convert to array and normalize
+        # Convert to array and scale to 0-1
         image_array = np.array(image) / 255.0
         image_array = np.expand_dims(image_array, axis=0)
 
-        return image_array, was_cropped
+        return image_array, was_cropped, was_normalized
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error processing image: {str(e)}")
 
@@ -216,7 +277,8 @@ VALID_VARIETIES = ['combined', 'gala', 'smith', 'red_delicious']
 async def analyze_apple(
     file: UploadFile = File(...),
     variety: Optional[str] = Query('combined', description="Apple variety: 'combined', 'gala', 'smith', or 'red_delicious'"),
-    crop: Optional[bool] = Query(True, description="Auto-crop apple from background before analysis")
+    crop: Optional[bool] = Query(False, description="Auto-crop apple from background before analysis"),
+    normalize: Optional[bool] = Query(True, description="Normalize image brightness/color to reduce domain shift from phone photos")
 ):
     """
     Analyze apple photo and predict days since cut
@@ -224,7 +286,8 @@ async def analyze_apple(
     Args:
         file: Image file of the apple
         variety: Which model to use - 'combined' (default), 'gala', 'smith', or 'red_delicious'
-        crop: Auto-crop apple from background (default True). Improves accuracy for phone photos.
+        crop: Auto-crop apple from background (default False). Set to True for phone photos with busy backgrounds.
+        normalize: Normalize image brightness/white balance (default True). Helps phone photos match training conditions.
 
     Returns:
     - days: Predicted days since apple was cut
@@ -240,23 +303,29 @@ async def analyze_apple(
             status_code=400,
             detail=f"Invalid variety. Must be one of {VALID_VARIETIES}. Got: {variety}"
         )
-    
+
     # Check if model is loaded
     if variety not in models:
         available = list(models.keys())
         raise HTTPException(
-            status_code=503, 
+            status_code=503,
             detail=f"Model '{variety}' not loaded. Available models: {available}"
         )
-    
+
     # Validate file type
     if not file.content_type.startswith('image/'):
         raise HTTPException(status_code=400, detail="File must be an image")
-    
+
     try:
         # Read and preprocess image
         image_bytes = await file.read()
-        image_array, was_cropped = preprocess_image(image_bytes, crop=crop)
+
+        # Debug: save received image to inspect what the phone sends
+        debug_img = Image.open(io.BytesIO(image_bytes))
+        debug_img.save(BASE_DIR / "debug_last_received.jpg")
+        print(f"📸 DEBUG: Received image {debug_img.size}, {len(image_bytes)} bytes, type={file.content_type}")
+
+        image_array, was_cropped, was_normalized = preprocess_image(image_bytes, crop=crop, normalize=normalize)
 
         # Make prediction using selected model
         model = models[variety]
@@ -310,7 +379,9 @@ async def analyze_apple(
             },
             "preprocessing": {
                 "auto_crop_requested": crop,
-                "was_cropped": was_cropped
+                "was_cropped": was_cropped,
+                "normalize_requested": normalize,
+                "was_normalized": was_normalized
             }
         }
         
@@ -321,7 +392,8 @@ async def analyze_apple(
 async def batch_analyze(
     files: list[UploadFile] = File(...),
     variety: Optional[str] = Query('combined', description="Apple variety: 'combined', 'gala', 'smith', or 'red_delicious'"),
-    crop: Optional[bool] = Query(True, description="Auto-crop apple from background before analysis")
+    crop: Optional[bool] = Query(True, description="Auto-crop apple from background before analysis"),
+    normalize: Optional[bool] = Query(True, description="Normalize image brightness/color to reduce domain shift")
 ):
     """
     Analyze multiple apple photos at once
@@ -336,21 +408,21 @@ async def batch_analyze(
             status_code=400,
             detail=f"Invalid variety. Must be one of {VALID_VARIETIES}"
         )
-    
+
     if variety not in models:
         available = list(models.keys())
         raise HTTPException(
-            status_code=503, 
+            status_code=503,
             detail=f"Model '{variety}' not loaded. Available models: {available}"
         )
-    
+
     model = models[variety]
     results = []
-    
+
     for file in files:
         try:
             image_bytes = await file.read()
-            image_array, was_cropped = preprocess_image(image_bytes, crop=crop)
+            image_array, was_cropped, was_normalized = preprocess_image(image_bytes, crop=crop, normalize=normalize)
 
             prediction = model.predict(image_array, verbose=0)
             predicted_days = float(prediction[0][0])

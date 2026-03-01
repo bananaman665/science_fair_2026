@@ -1,25 +1,16 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
 
 export const SplashScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { user, initialized } = useAuthStore();
 
   useEffect(() => {
-    // Wait for auth to initialize
-    if (!initialized) return;
-
     const timer = setTimeout(() => {
-      if (user) {
-        navigate('/scan', { replace: true });
-      } else {
-        navigate('/login', { replace: true });
-      }
+      navigate('/scan', { replace: true });
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [user, initialized, navigate]);
+  }, [navigate]);
 
   return (
     <div className="h-screen bg-gradient-to-br from-primary to-green-700 flex items-center justify-center">

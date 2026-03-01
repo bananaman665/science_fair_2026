@@ -1,6 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
 import { AnalyzeResponse, HealthCheckResponse, AppleVariety } from '../types/api.types';
-import { auth } from '../lib/firebase';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -10,18 +9,7 @@ class ApiService {
   constructor() {
     this.client = axios.create({
       baseURL: BASE_URL,
-      timeout: 30000, // 30 seconds for image upload
-      // Don't set Content-Type for multipart - let axios auto-detect
-    });
-
-    // Add auth token to requests
-    this.client.interceptors.request.use(async (config) => {
-      const user = auth.currentUser;
-      if (user) {
-        const token = await user.getIdToken();
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
+      timeout: 30000,
     });
   }
 
