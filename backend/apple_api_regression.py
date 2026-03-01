@@ -88,21 +88,84 @@ async def load_models():
     print("=" * 50)
     print(f"Total models loaded: {len(models)}/4\n")
 
-def preprocess_image(image_bytes):
+def auto_crop_apple(image):
+    """
+    Auto-crop apple from background by detecting the foreground object.
+    Samples the image border to determine background color, then finds
+    regions that differ from it. Works with any background color.
+    Returns (cropped_image, was_cropped) tuple.
+    """
+    img_array = np.array(image, dtype=np.float32)
+    h, w = img_array.shape[:2]
+
+    # Sample border pixels (top/bottom 5% of rows, left/right 5% of cols)
+    border_size = max(int(min(h, w) * 0.05), 1)
+    border_pixels = np.concatenate([
+        img_array[:border_size, :].reshape(-1, 3),     # top
+        img_array[-border_size:, :].reshape(-1, 3),    # bottom
+        img_array[:, :border_size].reshape(-1, 3),     # left
+        img_array[:, -border_size:].reshape(-1, 3),    # right
+    ])
+
+    # Background color = median of border pixels (robust to outliers)
+    bg_color = np.median(border_pixels, axis=0)
+
+    # Mask: pixels that differ from background by more than threshold
+    diff = np.sqrt(np.sum((img_array - bg_color) ** 2, axis=2))
+    mask = diff > 40  # color distance threshold
+
+    # Find rows and columns with foreground pixels
+    rows = np.any(mask, axis=1)
+    cols = np.any(mask, axis=0)
+
+    if not rows.any() or not cols.any():
+        return image, False
+
+    row_indices = np.where(rows)[0]
+    col_indices = np.where(cols)[0]
+
+    min_row, max_row = int(row_indices[0]), int(row_indices[-1])
+    min_col, max_col = int(col_indices[0]), int(col_indices[-1])
+
+    # Add 5% padding
+    pad_h = int((max_row - min_row) * 0.05)
+    pad_w = int((max_col - min_col) * 0.05)
+
+    min_row = max(0, min_row - pad_h)
+    max_row = min(h, max_row + pad_h)
+    min_col = max(0, min_col - pad_w)
+    max_col = min(w, max_col + pad_w)
+
+    # Only crop if the bounding box is meaningfully smaller than the original
+    crop_area = (max_row - min_row) * (max_col - min_col)
+    total_area = h * w
+    if crop_area >= total_area * 0.85:
+        return image, False
+
+    cropped = image.crop((min_col, min_row, max_col, max_row))
+    return cropped, True
+
+
+def preprocess_image(image_bytes, crop=True):
     """Preprocess uploaded image for prediction"""
     try:
         # Open image
         image = Image.open(io.BytesIO(image_bytes))
         image = image.convert('RGB')
-        
+
+        # Auto-crop apple from background if requested
+        was_cropped = False
+        if crop:
+            image, was_cropped = auto_crop_apple(image)
+
         # Resize to model input size
         image = image.resize((224, 224))
-        
+
         # Convert to array and normalize
         image_array = np.array(image) / 255.0
         image_array = np.expand_dims(image_array, axis=0)
-        
-        return image_array
+
+        return image_array, was_cropped
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error processing image: {str(e)}")
 
@@ -135,7 +198,8 @@ VALID_VARIETIES = ['combined', 'gala', 'smith', 'red_delicious']
 @app.post("/analyze")
 async def analyze_apple(
     file: UploadFile = File(...),
-    variety: Optional[str] = Query('combined', description="Apple variety: 'combined', 'gala', 'smith', or 'red_delicious'")
+    variety: Optional[str] = Query('combined', description="Apple variety: 'combined', 'gala', 'smith', or 'red_delicious'"),
+    crop: Optional[bool] = Query(True, description="Auto-crop apple from background before analysis")
 ):
     """
     Analyze apple photo and predict days since cut
@@ -143,6 +207,7 @@ async def analyze_apple(
     Args:
         file: Image file of the apple
         variety: Which model to use - 'combined' (default), 'gala', 'smith', or 'red_delicious'
+        crop: Auto-crop apple from background (default True). Improves accuracy for phone photos.
 
     Returns:
     - days: Predicted days since apple was cut
@@ -174,8 +239,8 @@ async def analyze_apple(
     try:
         # Read and preprocess image
         image_bytes = await file.read()
-        image_array = preprocess_image(image_bytes)
-        
+        image_array, was_cropped = preprocess_image(image_bytes, crop=crop)
+
         # Make prediction using selected model
         model = models[variety]
         metadata = metadata_store.get(variety, {})
@@ -225,6 +290,10 @@ async def analyze_apple(
                 "variety_used": variety,
                 "validation_mae": metadata.get('validation_mae'),
                 "training_samples": metadata.get('training_samples')
+            },
+            "preprocessing": {
+                "auto_crop_requested": crop,
+                "was_cropped": was_cropped
             }
         }
         
@@ -234,7 +303,8 @@ async def analyze_apple(
 @app.post("/batch_analyze")
 async def batch_analyze(
     files: list[UploadFile] = File(...),
-    variety: Optional[str] = Query('combined', description="Apple variety: 'combined', 'gala', 'smith', or 'red_delicious'")
+    variety: Optional[str] = Query('combined', description="Apple variety: 'combined', 'gala', 'smith', or 'red_delicious'"),
+    crop: Optional[bool] = Query(True, description="Auto-crop apple from background before analysis")
 ):
     """
     Analyze multiple apple photos at once
@@ -263,14 +333,15 @@ async def batch_analyze(
     for file in files:
         try:
             image_bytes = await file.read()
-            image_array = preprocess_image(image_bytes)
-            
+            image_array, was_cropped = preprocess_image(image_bytes, crop=crop)
+
             prediction = model.predict(image_array, verbose=0)
             predicted_days = float(prediction[0][0])
-            
+
             results.append({
                 "filename": file.filename,
                 "days_since_cut": round(predicted_days, 2),
+                "was_cropped": was_cropped,
                 "success": True
             })
         except Exception as e:
