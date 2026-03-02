@@ -10,7 +10,8 @@ import tensorflow as tf
 from tensorflow import keras
 from pathlib import Path
 import json
-from PIL import Image
+import io
+from PIL import Image, ImageEnhance, ImageFilter
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
@@ -36,6 +37,99 @@ METADATA_PATHS = {
 # Image settings
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
+
+
+def phone_augment(img_array):
+    """
+    Apply random augmentations to simulate phone camera conditions.
+    Takes a normalized numpy array (0-1, shape 224x224x3), applies random
+    transformations, returns augmented array in same format.
+    """
+    # Convert back to PIL Image for augmentation (0-255 uint8)
+    img = Image.fromarray((img_array * 255).astype(np.uint8))
+
+    # 1. Brightness shift (±30%)
+    factor = np.random.uniform(0.7, 1.3)
+    img = ImageEnhance.Brightness(img).enhance(factor)
+
+    # 2. Contrast shift (±30%)
+    factor = np.random.uniform(0.7, 1.3)
+    img = ImageEnhance.Contrast(img).enhance(factor)
+
+    # 3. Color temperature - random per-channel scaling to simulate warm/cool lighting
+    arr = np.array(img, dtype=np.float32)
+    r_scale = np.random.uniform(0.85, 1.15)
+    g_scale = np.random.uniform(0.90, 1.10)
+    b_scale = np.random.uniform(0.85, 1.15)
+    arr[:, :, 0] = np.clip(arr[:, :, 0] * r_scale, 0, 255)
+    arr[:, :, 1] = np.clip(arr[:, :, 1] * g_scale, 0, 255)
+    arr[:, :, 2] = np.clip(arr[:, :, 2] * b_scale, 0, 255)
+    img = Image.fromarray(arr.astype(np.uint8))
+
+    # 4. Gaussian blur (0-1.5px radius)
+    radius = np.random.uniform(0, 1.5)
+    if radius > 0.3:  # skip very small blurs
+        img = img.filter(ImageFilter.GaussianBlur(radius=radius))
+
+    # 5. Horizontal flip (50% chance)
+    if np.random.random() > 0.5:
+        img = img.transpose(Image.FLIP_LEFT_RIGHT)
+
+    # 6. Rotation (±15 degrees)
+    angle = np.random.uniform(-15, 15)
+    if abs(angle) > 1:
+        img = img.rotate(angle, resample=Image.BILINEAR, fillcolor=(0, 0, 0))
+
+    # 7. JPEG compression (quality 50-95%)
+    quality = np.random.randint(50, 96)
+    buffer = io.BytesIO()
+    img.save(buffer, format='JPEG', quality=quality)
+    buffer.seek(0)
+    img = Image.open(buffer).convert('RGB')
+
+    # 8. Gaussian noise (sigma 0-15)
+    arr = np.array(img, dtype=np.float32)
+    sigma = np.random.uniform(0, 15)
+    noise = np.random.normal(0, sigma, arr.shape)
+    arr = np.clip(arr + noise, 0, 255)
+
+    # Convert back to normalized array (0-1)
+    return arr.astype(np.float32) / 255.0
+
+
+class AugmentedDataGenerator(keras.utils.Sequence):
+    """
+    Custom data generator that applies phone_augment() on-the-fly.
+    Each epoch, every training image gets a fresh random augmentation,
+    so the model sees thousands of variations over the full training run.
+    """
+
+    def __init__(self, images, labels, batch_size=8, augment=True):
+        self.images = images
+        self.labels = labels
+        self.batch_size = batch_size
+        self.augment = augment
+        self.indices = np.arange(len(images))
+
+    def __len__(self):
+        return int(np.ceil(len(self.images) / self.batch_size))
+
+    def __getitem__(self, idx):
+        batch_indices = self.indices[idx * self.batch_size:(idx + 1) * self.batch_size]
+        batch_images = []
+        batch_labels = self.labels[batch_indices]
+
+        for i in batch_indices:
+            img = self.images[i]
+            if self.augment:
+                img = phone_augment(img)
+            batch_images.append(img)
+
+        return np.array(batch_images), batch_labels
+
+    def on_epoch_end(self):
+        np.random.shuffle(self.indices)
+
 
 def parse_photo_metadata(filename):
     """Extract days from filename"""
@@ -214,21 +308,27 @@ def train_model(variety='combined'):
     print(f"\n📊 Dataset split:")
     print(f"   Training: {len(X_train)} images")
     print(f"   Validation: {len(X_val)} images")
-    
+
+    # Create augmented data generator for training
+    # Validation data is NOT augmented - we want to measure real accuracy
+    train_gen = AugmentedDataGenerator(X_train, y_train, batch_size=8, augment=True)
+    print(f"   Augmentation: ENABLED (phone simulation)")
+    print(f"   Each image gets random brightness, contrast, color temp, blur,")
+    print(f"   noise, JPEG compression, rotation, and flip per epoch")
+
     # Create model
     print("\n🏗️  Building regression model...")
     model = create_regression_model()
-    
+
     print(f"   Total parameters: {model.count_params():,}")
-    
-    # Train model
-    print("\n🚀 Training model...")
-    
+
+    # Train model - more epochs since augmentation makes learning harder
+    print("\n🚀 Training model with augmentation...")
+
     history = model.fit(
-        X_train, y_train,
+        train_gen,
         validation_data=(X_val, y_val),
-        epochs=50,
-        batch_size=8,
+        epochs=80,
         verbose=1
     )
     
@@ -258,7 +358,13 @@ def train_model(variety='combined'):
             'max': float(labels.max())
         },
         'image_size': [IMG_HEIGHT, IMG_WIDTH],
-        'parameters': model.count_params()
+        'parameters': model.count_params(),
+        'augmentation': 'phone_simulation',
+        'augmentation_types': [
+            'brightness', 'contrast', 'color_temperature',
+            'gaussian_blur', 'horizontal_flip', 'rotation',
+            'jpeg_compression', 'gaussian_noise'
+        ]
     }
     
     metadata_path = METADATA_PATHS[variety]
