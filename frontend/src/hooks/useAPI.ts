@@ -11,38 +11,51 @@ export const useAPI = () => {
     imageUri: string,
     variety: AppleVariety
   ): Promise<AnalyzeResponse | null> => {
+    const startTime = Date.now();
     try {
-      console.log('🔍 Starting analysis for variety:', variety);
+      console.log('='.repeat(60));
+      console.log('🔍 [useAPI] Starting analysis pipeline');
+      console.log(`🔍 [useAPI] Variety: ${variety}`);
+      console.log(`🔍 [useAPI] Image URI: ${imageUri.substring(0, 80)}...`);
       setLoading(true);
       setError(null);
 
-      // Convert URI to Blob
-      console.log('📷 Converting image URI to blob...');
+      // Step 1: Convert URI to Blob
+      const step1Start = Date.now();
+      console.log('📷 [useAPI] Step 1: Converting URI to blob...');
       const blob = await imageService.uriToBlob(imageUri);
-      console.log('✅ Blob created, size:', blob.size);
+      console.log(`📷 [useAPI] Step 1 DONE: ${blob.size} bytes, took ${Date.now() - step1Start}ms`);
 
-      // Optional: Compress image
-      console.log('🗜️ Compressing image...');
+      // Step 2: Compress image
+      const step2Start = Date.now();
+      console.log('🗜️ [useAPI] Step 2: Compressing image...');
       const compressedBlob = await imageService.compressImage(blob);
-      console.log('✅ Image compressed, size:', compressedBlob.size);
+      console.log(`🗜️ [useAPI] Step 2 DONE: ${compressedBlob.size} bytes, took ${Date.now() - step2Start}ms`);
 
-      // Send to API
-      console.log('📤 Sending to API...');
+      // Step 3: Send to API
+      const step3Start = Date.now();
+      console.log('📤 [useAPI] Step 3: Sending to API...');
       const result = await apiService.analyzeApple(compressedBlob, variety);
-      console.log('✅ API response received:', result);
+      console.log(`📤 [useAPI] Step 3 DONE: took ${Date.now() - step3Start}ms`);
+      console.log(`✅ [useAPI] FULL PIPELINE SUCCESS: ${Date.now() - startTime}ms total`);
+      console.log(`✅ [useAPI] Prediction: ${result.prediction.days_since_cut} days`);
+      console.log('='.repeat(60));
 
       setLoading(false);
       return result;
     } catch (err: any) {
+      const elapsed = Date.now() - startTime;
       const errorMsg = err.response?.data?.detail || err.message || 'Analysis failed';
-      console.error('❌ Analysis error:', errorMsg);
-      console.error('Full error details:', {
-        message: err.message,
-        code: err.code,
-        status: err.response?.status,
-        data: err.response?.data,
-        config: err.config,
-      });
+      console.error('='.repeat(60));
+      console.error(`❌ [useAPI] PIPELINE FAILED after ${elapsed}ms`);
+      console.error(`❌ [useAPI] Error message: ${errorMsg}`);
+      console.error(`❌ [useAPI] Error code: ${err.code}`);
+      console.error(`❌ [useAPI] HTTP status: ${err.response?.status}`);
+      console.error(`❌ [useAPI] Response data:`, err.response?.data);
+      console.error(`❌ [useAPI] Request URL: ${err.config?.baseURL}${err.config?.url}`);
+      console.error(`❌ [useAPI] Was request sent: ${err.request ? 'YES' : 'NO'}`);
+      console.error(`❌ [useAPI] Was response received: ${err.response ? 'YES' : 'NO'}`);
+      console.error('='.repeat(60));
       setError(errorMsg);
       setLoading(false);
       return null;
